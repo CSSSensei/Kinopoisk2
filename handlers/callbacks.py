@@ -1,13 +1,17 @@
+from typing import Union, Tuple
+
 from aiogram import Router, F
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery
-from pyexpat.errors import messages
+from config_data.config import Config, load_config
 
 from keyboards import user_keyboards
 from DB.movie_DB import get_info, get_facts, search_by_id
-from filters.UCommands import get_id, cut_back
+from filters.UCommands import get_id, cut_back, split_text
 
 router = Router()
+
+config: Config = load_config()
 
 
 class MovieCallBack(CallbackData, prefix="movie"):
@@ -15,23 +19,48 @@ class MovieCallBack(CallbackData, prefix="movie"):
     action: int
 
 
+class FactsCallBack(CallbackData, prefix="fact"):
+    movie_id: int
+    page: int
+    action: int = 0
+
+
 @router.callback_query(MovieCallBack.filter())
-async def moderate_manage_settings(callback: CallbackQuery, callback_data: MovieCallBack):
+async def moderate_film_callbacks(callback: CallbackQuery, callback_data: MovieCallBack):
     action = callback_data.action
     movie_id = callback_data.movie_id
     movie = search_by_id(movie_id)
-    if action == -1:
-        await callback.message.edit_caption(caption=get_info(movie)[0], reply_markup=user_keyboards.movie_keyboard(movie))
-    elif action == 0:
-        await callback.message.edit_caption(caption=get_info(movie)[1], reply_markup=user_keyboards.movie_keyboard(movie, True))
-    elif action == 1:
-        await callback.message.edit_caption(caption=get_info(movie)[3], reply_markup=user_keyboards.movie_keyboard(movie, True))
-    elif action == 2:
-        await callback.message.edit_caption(caption=get_info(movie)[2], reply_markup=user_keyboards.movie_keyboard(movie, True))
-    elif action == 3:
-        await callback.message.edit_caption(caption=get_info(movie)[5], reply_markup=user_keyboards.movie_keyboard(movie, True))
-    elif action == 4:
-        await callback.message.edit_caption(caption=get_info(movie)[4], reply_markup=user_keyboards.movie_keyboard(movie, True))
+
+    action_to_index = {
+        -1: 0,
+        0: 1,
+        1: 3,
+        2: 2,
+        3: 5,
+        4: 4,
+    }
+
+    index = action_to_index.get(action, -1)
+    await callback.message.edit_caption(
+        caption=get_info(movie)[index],
+        reply_markup=user_keyboards.movie_keyboard(movie, action != -1)
+    )
+
+
+@router.callback_query(FactsCallBack.filter())
+async def moderate_film_callbacks(callback: CallbackQuery, callback_data: FactsCallBack):
+    page = callback_data.page
+    action = callback_data.action
+    if action == -2:
+        await callback.answer(str(page + 1))
+        return
+    movie_id = callback_data.movie_id
+
+    facts, max_page = _get_facts_by_page(movie_id, page)
+    await callback.message.edit_caption(
+        caption=facts,
+        reply_markup=user_keyboards.facts_keyboard(movie_id, page, max_page=max_page)
+    )
 
 
 @router.callback_query(F.data == 'button_00_pressed')
@@ -42,8 +71,7 @@ async def process_button_1_press(callback: CallbackQuery):
         await callback.message.edit_caption(caption=txt[0], reply_markup=user_keyboards.inline_keyboard)
     else:
         await callback.message.edit_caption(caption=txt[0], reply_markup=user_keyboards.inline_keyboard3)
-    await callback.answer()\
-
+    await callback.answer()
 
 
 @router.callback_query(F.data == 'button_0_pressed')
@@ -109,15 +137,13 @@ async def process_button_1_press(callback: CallbackQuery):
     name = callback.message.caption
     name = name[:name.find('(') - 1]
     if len(facts) > 0:
-        if len(facts) > 2048:
-            facts = cut_back(facts)
-            await callback.message.reply(f'Факты о <i><b>{name}</b></i>\n\n' + facts[0],
-                                         reply_markup=user_keyboards.keyboard)
-            for i in range(1, len(facts)):
-                await callback.message.answer(facts[i], reply_markup=user_keyboards.keyboard)
-        else:
-            facts = f'Факты о <i><b>{name}</b></i>\n\n' + facts
-            await callback.message.reply(facts, reply_markup=user_keyboards.keyboard)
+        facts = cut_back(facts)
+        await callback.message.reply(
+            f'Факты о <i><b>{name}</b></i>\n\n' + facts[0],
+            reply_markup=user_keyboards.keyboard
+        )
+        for fact in facts[1:]:
+            await callback.message.answer(fact, reply_markup=user_keyboards.keyboard)
     else:
         facts = f'Нет интересных фактов о <i><b>{name}</b></i>\n\n'
         await callback.message.reply(facts, reply_markup=user_keyboards.keyboard)
@@ -137,3 +163,8 @@ async def process_button_1_press(callback: CallbackQuery):
         trailer = f'К сожалению, не нашлось ничего связанного с <i><b>{name}</b></i>'
         await callback.message.reply(trailer, reply_markup=user_keyboards.keyboard)
     await callback.answer()
+
+
+def _get_facts_by_page(movie_id: int, page: int = 0) -> Tuple[str, int]:
+    facts = split_text(get_facts(movie_id), config.tg_bot.message_max_symbols)
+    return facts[page], len(facts)

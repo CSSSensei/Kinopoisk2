@@ -2,19 +2,15 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from DB.movie_DB import search_en_name, random_film, get_info  # TODO переименовать это говно
+from DB.movie_DB import search_en_name, random_film, get_info
 from aiogram import Router, F
 
+from config_data.models import Movie
+from filters.UCommands import get_link
 from states.states import SearchMovie
 from keyboards import user_keyboards
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-import draft
 
 router = Router()
-engine = create_engine('mysql+pymysql://root:root@localhost:3306/new_schema')
-Session = sessionmaker(bind=engine)
-session = Session()
 
 
 @router.message(F.text == 'Найти фильм')
@@ -25,8 +21,11 @@ async def process_insert_film_name(message: Message, state: FSMContext):
 
 @router.message(F.text == 'Рандомный фильм', ~StateFilter(SearchMovie.insert_film_name))
 async def process_random_film(message: Message):
-    line = random_film()
-    link = f'https://st.kp.yandex.net/images/film_big/{line.id}.jpg'
+    line: Movie = random_film()
+    if line is None:
+        await message.answer('Произошла ошибка((')
+        return
+    link = get_link(line.id)
     txt = get_info(line)
     if len(txt[5]) == 0:
         await message.answer_photo(photo=link, caption=txt[0], reply_markup=user_keyboards.movie_keyboard(line))
@@ -47,11 +46,12 @@ async def return_film_info(message: Message, state: FSMContext):
         await state.clear()
     else:
         lst = ''
+        link = ''
         for i in films:
             if flag:
                 flag = False
                 id = i.id
-                link = f'https://st.kp.yandex.net/images/film_big/{id}.jpg'
+                link = get_link(id)
             if i.ru_name:
                 lst += i.ru_name
             else:

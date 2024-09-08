@@ -1,4 +1,9 @@
 import re
+from typing import List
+
+
+def get_link(movie_id: int):
+    return f'http://www.kinopoisk.ru/images/film_big/{movie_id}.jpg'
 
 
 def get_id(s: str) -> int:
@@ -8,13 +13,40 @@ def get_id(s: str) -> int:
         return int(id)
 
 
-def cut_back(s: str) -> str:
-    last = 0
+def cut_back(s: str) -> list:
     lst = []
     while len(s) > 2048:
-        for i in range(2048):
-            if s[i] == '-' and s[i + 1] == ' ':
-                last = i
+        last = s.rfind('- ', 0, 2048)
+        if last == -1:
+            break
         lst.append(s[:last])
-        s = s[last:]
+        s = s[last + 2:]
+    lst.append(s)
     return lst
+
+
+def split_text(text, n) -> List[str]:
+    result = []
+    lines = text.split('\n')
+    current_chunk = ''
+    current_length = 0
+
+    for line in lines:
+        if len(current_chunk) + len(line) + 1 <= n:  # Check if adding the line and '\n' fits in the chunk
+            if current_chunk:  # Add '\n' if it's not the first line in the chunk
+                current_chunk += '\n'
+            current_chunk += line
+            current_length += len(line) + 1
+        else:
+            result.append(current_chunk)
+            current_chunk = line
+            current_length = len(line)
+
+    if current_chunk:
+        result.append(current_chunk)
+
+    return result
+
+
+if __name__ == '__main__':
+    print(cut_back('- fadsfasdfasd'))

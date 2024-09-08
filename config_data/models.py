@@ -3,7 +3,7 @@ class Movie:
                  imdb, kphd, alternativeName, en_name, type, year, movieLength,
                  ratingMpaa, ageRating, countries, budget_value, fees_world,
                  top10, top250, productionCompanies, trailer, similarMovies,
-                 sequelsAndPrequels, actors, director, description, shortDescription, formula):
+                 sequelsAndPrequels, actors, director, description, shortDescription, formula, facts):
         self.id = id
         self.ru_name = ru_name
         self.rating_kp = rating_kp
@@ -34,3 +34,4 @@ class Movie:
         self.description = description
         self.shortDescription = shortDescription
         self.formula = formula
+        self.facts = facts

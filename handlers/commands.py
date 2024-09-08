@@ -5,6 +5,7 @@ from aiogram.fsm.state import default_state
 from aiogram.types import Message
 
 from DB.movie_DB import search_by_id, get_info
+from filters.UCommands import get_link
 from filters.filters import CheckId
 from keyboards import user_keyboards
 
@@ -14,11 +15,11 @@ router = Router()
 @router.message(CheckId())  # /id_...
 async def search(message: Message):
     s = message.text[4:]
-    id = int(s)
-    line = search_by_id(id)
+    movie_id = int(s)
+    line = search_by_id(movie_id)
     if line is not None:
         txt = get_info(line)
-        link = f'https://st.kp.yandex.net/images/film_big/{id}.jpg'
+        link = get_link(movie_id)
         await message.answer_photo(photo=link, caption=txt[0], reply_markup=user_keyboards.movie_keyboard(line))
 
     else:
