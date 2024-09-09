@@ -3,6 +3,7 @@ import sqlite3
 from typing import List, Dict, Union
 from random import choice
 from config_data.models import Movie
+from filters.UCommands import cut_string
 
 FILMS_DB = f'{os.path.dirname(__file__)}/filmsDB.db'
 
@@ -55,7 +56,7 @@ with sqlite3.connect(FILMS_DB) as connection:
     connection.commit()
 
 
-def search_name(name: str) -> List[Movie]:
+def search_by_name(name: str) -> List[Movie]:
     with sqlite3.connect(FILMS_DB) as conn:
         cursor = conn.cursor()
 
@@ -84,7 +85,7 @@ def search_en_name(name: str) -> List[Movie]:
             return []
         # Создаем placeholders для поиска с использованием 'AND'
         placeholders = ' OR '.join(['(ru_name LIKE ? OR alternativeName LIKE ? OR en_name LIKE ?)'] * len(parts))
-        sql_query = f'SELECT * FROM films_db WHERE {placeholders} ORDER BY formula DESC LIMIT 50'
+        sql_query = f'SELECT * FROM films_db WHERE {placeholders} ORDER BY votes_kp DESC LIMIT 50'
 
         # Подготовка параметров для запроса
         params = [f'%{part}%' for part in parts for _ in range(3)]  # Каждое слово трижды для трех колонок
@@ -127,32 +128,34 @@ def get_info(movie: Movie) -> List[str]:
     info = [f'<b><a href="https://www.kinopoisk.ru/film/{movie.id}">' + (
         movie.ru_name if movie.ru_name else movie.alternativeName) + f'</a></b> <i>(/id_{movie.id})</i>\n',
             f'<b>Рейтинг:</b> {movie.rating_kp}\n' if movie.rating_kp else '',
-            f'<b>{movie.votes_kp} оценок</b>\n' if movie.votes_kp is not None else '', f'<b>Жанры:</b> {movie.genres}\n' if movie.genres else '',
-            f'<b>Тип материала:</b> {movie.type}\n' if movie.type else '', f'<b>{movie.year} год</b>\n' if movie.year != -1 else '',
+            f'<b>{movie.year} год</b>\n' if movie.year != -1 else '',
+            f'<b>Жанры:</b> {movie.genres}\n' if movie.genres else '',
+            f'<b>{movie.votes_kp} оценок</b>\n' if movie.votes_kp is not None else '',
+            f'<b>Тип материала:</b> {movie.type}\n' if movie.type else '',
             f'<b>Длительность:</b> {movie.movieLength} мин\n' if movie.movieLength != -1 else '',
-            f"<b>Рейтинг MPAA:</b> {movie.ratingMpaa}\n" if movie.ratingMpaa else '',
+            # f"<b>Рейтинг MPAA:</b> {movie.ratingMpaa}\n" if movie.ratingMpaa else '',
             f'<b>Возрастной рейтинг</b> {movie.ageRating}+\n' if movie.ageRating != -1 else '',
             f'<b>Страна:</b> {movie.countries}\n' if movie.countries else '',
             f'<b>Бюджет:</b> {movie.budget_value}\n' if movie.budget_value else '',
-            f'<b>Сборы:</b> {movie.fees_world}\n' if movie.fees_world else '',
-            f'<b>Место в топ 10:</b> {movie.top10}\n' if movie.top10 != -1 else '',
+            # f'<b>Сборы:</b> {movie.fees_world}\n' if movie.fees_world else '',
+            # f'<b>Место в топ 10:</b> {movie.top10}\n' if movie.top10 != -1 else '',
             f'<b>Место в топ 250:</b> {movie.top250}\n' if movie.top250 != -1 else '',
-            f'<b>Продакшн компании:</b> {movie.productionCompanies}\n' if movie.productionCompanies else '',
-            f'<b>Актеры:</b> {movie.actors}\n' if movie.actors else '', f'<b>Режиссер:</b> {movie.director}\n' if movie.director else '']
+            f'<b>Продакшн компании:</b> {cut_string(movie.productionCompanies, 40)}\n' if movie.productionCompanies else '',
+            f'<b>Актеры:</b> {cut_string(movie.actors)}\n' if movie.actors else '',
+            f'<b>Режиссер:</b> {movie.director}\n' if movie.director else '']
 
     description = (f'<blockquote>{movie.description}</blockquote>\n\n' if movie.description else '') + (
         f'<b>Коротко о фильме:</b>\n<i>{movie.shortDescription}</i>\n' if movie.shortDescription else '')
 
     similar = f'<b>Похожие фильмы:</b>\n{movie.similarMovies.replace("id: ", "/id_")}' if movie.similarMovies else ''
     trailer = movie.trailer if movie.trailer else ''
-
-    short = ''.join(info[0:2]) + info[5] + info[3] + info[9] + info[16]
+    short = ''.join(info[0:4]) + info[8] + info[13]
     sequels = f'<b>Сиквелы и приквелы:</b>\n{movie.sequelsAndPrequels.replace("id: ", "/id_")}\n' if movie.sequelsAndPrequels else ''
 
     return [short, description, similar, trailer, ''.join(info), sequels, short + '\n' + (movie.shortDescription or movie.description or '\n')]
 
 
-def filter_database(filters: Dict[str, str | bool]) -> List[Movie]:
+def filter_database(filters: Dict[str, Union[str, bool]]) -> List[Movie]:
     with sqlite3.connect(FILMS_DB) as conn:
         cursor = conn.cursor()
         query = 'SELECT * FROM films_db WHERE 1=1'
@@ -232,5 +235,6 @@ def filter_database(filters: Dict[str, str | bool]) -> List[Movie]:
 
 if __name__ == "__main__":
     print(random_film())
-    print(search_name('Фильм'))
-    print(*[i.__dict__ for i in filter_database({'year': '2019-2020', 'top10': False})], sep='\n')
+    print(get_info(random_film())[4])
+    # print(search_name('Фильм'))
+    # print(*[i.__dict__ for i in filter_database({'year': '2019-2020', 'top10': False})], sep='\n')

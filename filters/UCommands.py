@@ -13,6 +13,17 @@ def get_id(s: str) -> int:
         return int(id)
 
 
+def cut_string(s: str, n: int = 90):
+    if len(s) <= n:
+        return s
+
+    last_comma_index = s.rfind(',', 0, n)
+
+    if last_comma_index == -1:
+        return s[:n]
+    return s[:last_comma_index]
+
+
 def cut_back(s: str) -> list:
     lst = []
     while len(s) > 2048:

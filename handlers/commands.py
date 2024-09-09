@@ -12,6 +12,8 @@ from keyboards import user_keyboards
 router = Router()
 
 
+# TODO сделать lexicon файл
+
 @router.message(CheckId())  # /id_...
 async def search(message: Message):
     s = message.text[4:]

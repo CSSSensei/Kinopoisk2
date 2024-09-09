@@ -13,6 +13,8 @@ from keyboards import user_keyboards
 router = Router()
 
 
+# TODO сделать lexicon файл
+
 @router.message(F.text == 'Найти фильм')
 async def process_insert_film_name(message: Message, state: FSMContext):
     await message.answer(text='Введите название фильма', reply_markup=ReplyKeyboardRemove())
