@@ -1,5 +1,7 @@
 import asyncio
 from aiogram import Bot, Dispatcher
+
+from DB.movie_DB import random_film
 from config_data.config import Config, load_config
 from handlers import user_handlers, admin_handlers, commands, callbacks, inline_handler
 
@@ -13,6 +15,7 @@ async def main() -> None:
     dp.include_router(user_handlers.router)
     dp.include_router(callbacks.router)
     dp.include_router(inline_handler.router)
+    random_film()  # предварительная загрузка фильмов из БД в кэш
     print("Мувик запущен!")
     await dp.start_polling(bot)
 

@@ -9,47 +9,6 @@ keyboard: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
     keyboard=[[find_movie], [random_movie]],
     resize_keyboard=True,
     one_time_keyboard=False)
-inline_more_info: InlineKeyboardButton = InlineKeyboardButton(
-    text='Больше информации о фильме',
-    callback_data='button_0_pressed')
-inline_less_info: InlineKeyboardButton = InlineKeyboardButton(
-    text='Меньше информации о фильме',
-    callback_data='button_00_pressed')
-inline_description: InlineKeyboardButton = InlineKeyboardButton(
-    text='Синопсис',
-    callback_data='big_button_1_pressed')
-
-inline_similar: InlineKeyboardButton = InlineKeyboardButton(
-    text='Похожие фильмы',
-    callback_data='big_button_2_pressed')
-inline_trailer: InlineKeyboardButton = InlineKeyboardButton(
-    text='Трейлер',
-    callback_data='big_button_3_pressed')
-inline_facts: InlineKeyboardButton = InlineKeyboardButton(
-    text='Интересные факты о фильме',
-    callback_data='big_button_4_pressed')
-inline_sequel: InlineKeyboardButton = InlineKeyboardButton(
-    text='Сиквелы и приквелы',
-    callback_data='big_button_5_pressed')
-
-inline_keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
-    inline_keyboard=[[inline_more_info],
-                     [inline_description, inline_similar],
-                     [inline_trailer, inline_facts]])
-inline_keyboard2: InlineKeyboardMarkup = InlineKeyboardMarkup(
-    inline_keyboard=[[inline_less_info],
-                     [inline_description, inline_similar],
-                     [inline_trailer, inline_facts]])
-inline_keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup(
-    inline_keyboard=[[inline_more_info],
-                     [inline_description, inline_similar],
-                     [inline_trailer, inline_facts],
-                     [inline_sequel]])
-inline_keyboard4: InlineKeyboardMarkup = InlineKeyboardMarkup(
-    inline_keyboard=[[inline_less_info],
-                     [inline_description, inline_similar],
-                     [inline_trailer, inline_facts],
-                     [inline_sequel]])
 
 
 def movie_keyboard(movie: Movie, back=False):
