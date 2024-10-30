@@ -98,10 +98,13 @@ def search_en_name(name: str) -> List[Movie]:
 def random_film() -> Union[Movie, None]:
     with sqlite3.connect(FILMS_DB) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM films_db WHERE rating_kp >= 7 AND votes_kp >= 50000')
-        rows = cursor.fetchall()
-        if rows:
-            return Movie(*choice(rows))
+        cursor.execute('''  SELECT * 
+                            FROM films_db 
+                            WHERE rating_kp >= 7 AND votes_kp >= 50000
+                            ORDER BY RANDOM() LIMIT 1''')
+        row = cursor.fetchone()
+        if row:
+            return Movie(*row)
         return None
 
 

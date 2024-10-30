@@ -15,7 +15,6 @@ async def main() -> None:
     dp.include_router(user_handlers.router)
     dp.include_router(callbacks.router)
     dp.include_router(inline_handler.router)
-    random_film()  # предварительная загрузка фильмов из БД в кэш
     print("Мувик запущен!")
     await dp.start_polling(bot)
 
