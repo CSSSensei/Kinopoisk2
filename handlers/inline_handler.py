@@ -20,5 +20,5 @@ async def inline_get_photo(query: types.InlineQuery):
                                                       thumbnail_url=get_link(movie.id), url=f'https://www.kinopoisk.ru/film/{movie.id}',
                                                       input_message_content=InputTextMessageContent(message_text=get_info(movie)[6]),
                                                       hide_url=True,
-                                                      description=f"{movie.rating_kp} | {movie.shortDescription or movie.description or 'Без описания'}"))
+                                                      description=f"{movie.rating_kp if movie.rating_kp else '–'} | {movie.shortDescription or movie.description or 'Без описания'}"))
     await query.answer(movies_result, cache_time=1, is_personal=True)
