@@ -1,7 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher
 
-from DB.movie_DB import random_film
 from config_data.config import Config, load_config
 from handlers import user_handlers, admin_handlers, commands, callbacks, inline_handler
 

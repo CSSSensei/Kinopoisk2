@@ -4,23 +4,28 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import Message
 
-from DB.movie_DB import search_by_id, get_info
+
 from filters.UCommands import get_link
 from filters.filters import CheckId
 from keyboards import user_keyboards
+from DB.movie_interface import AbstractMovieDB
+from config_data.config import Config, load_config
+from DB.db_factory import DBFactory
 
 router = Router()
-
+config: Config = load_config()
+db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
 
 # TODO сделать lexicon файл
+
 
 @router.message(CheckId())  # /id_...
 async def search(message: Message):
     s = message.text[4:]
     movie_id = int(s)
-    line = search_by_id(movie_id)
+    line = db_instance.search_by_id(movie_id)
     if line is not None:
-        txt = get_info(line)
+        txt = db_instance.get_info(line)
         link = get_link(movie_id)
         await message.answer_photo(photo=link, caption=txt[0], reply_markup=user_keyboards.movie_keyboard(line))
 

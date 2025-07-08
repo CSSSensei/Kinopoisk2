@@ -2,13 +2,19 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from DB.movie_DB import search_en_name, random_film, get_info
 from aiogram import Router, F
 
 from config_data.models import Movie
 from filters.UCommands import get_link
 from states.states import SearchMovie
 from keyboards import user_keyboards
+
+from DB.movie_interface import AbstractMovieDB
+from config_data.config import Config, load_config
+from DB.db_factory import DBFactory
+
+config: Config = load_config()
+db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
 
 router = Router()
 
@@ -23,12 +29,12 @@ async def process_insert_film_name(message: Message, state: FSMContext):
 
 @router.message(F.text == 'Рандомный фильм', ~StateFilter(SearchMovie.insert_film_name))
 async def process_random_film(message: Message):
-    line: Movie = random_film()
+    line: Movie = db_instance.random_film()
     if line is None:
         await message.answer('Произошла ошибка((')
         return
     link = get_link(line.id)
-    txt = get_info(line)
+    txt = db_instance.get_info(line)
     if len(txt[5]) == 0:
         await message.answer_photo(photo=link, caption=txt[0], reply_markup=user_keyboards.movie_keyboard(line))
     else:
@@ -40,7 +46,7 @@ async def return_film_info(message: Message, state: FSMContext):
     text = message.text
     films = []
     if text != '':
-        films = search_en_name(text)
+        films = db_instance.search_en_name(text)
 
     flag = True
     if text != '' and len(films) == 0:

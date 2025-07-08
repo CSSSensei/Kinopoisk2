@@ -1,5 +1,5 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
-from DB.movie_DB import Movie
+from DB.movie_sqlite import Movie
 from handlers.callbacks import MovieCallBack, FactsCallBack
 
 find_movie: KeyboardButton = KeyboardButton(text='Найти фильм')

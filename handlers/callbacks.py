@@ -3,15 +3,17 @@ from typing import Union, Tuple
 from aiogram import Router, F
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery
+from DB.movie_interface import AbstractMovieDB
 from config_data.config import Config, load_config
 
 from keyboards import user_keyboards
-from DB.movie_DB import get_info, get_facts, search_by_id
+from DB.db_factory import DBFactory
 from filters.UCommands import get_id, cut_back, split_text
 
 router = Router()
 
 config: Config = load_config()
+db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
 
 
 class MovieCallBack(CallbackData, prefix="movie"):
@@ -29,7 +31,7 @@ class FactsCallBack(CallbackData, prefix="fact"):
 async def moderate_film_callbacks(callback: CallbackQuery, callback_data: MovieCallBack):
     action = callback_data.action
     movie_id = callback_data.movie_id
-    movie = search_by_id(movie_id)
+    movie = db_instance.search_by_id(movie_id)
 
     action_to_index = {
         -1: 0,
@@ -42,7 +44,7 @@ async def moderate_film_callbacks(callback: CallbackQuery, callback_data: MovieC
 
     index = action_to_index.get(action, -1)
     await callback.message.edit_caption(
-        caption=get_info(movie)[index],
+        caption=db_instance.get_info(movie)[index],
         reply_markup=user_keyboards.movie_keyboard(movie, action != -1)
     )
 
@@ -66,7 +68,7 @@ async def moderate_film_callbacks(callback: CallbackQuery, callback_data: FactsC
 @router.callback_query(F.data == 'button_00_pressed')
 async def process_button_1_press(callback: CallbackQuery):
     id = get_id(callback.message.caption)
-    txt = get_info(search_by_id(id))
+    txt = db_instance.get_info(db_instance.search_by_id(id))
     if len(txt[5]) == 0:
         await callback.message.edit_caption(caption=txt[0], reply_markup=user_keyboards.inline_keyboard)
     else:
@@ -77,7 +79,7 @@ async def process_button_1_press(callback: CallbackQuery):
 @router.callback_query(F.data == 'button_0_pressed')
 async def process_button_1_press(callback: CallbackQuery):
     id = get_id(callback.message.caption)
-    txt = get_info(search_by_id(id))
+    txt = db_instance.get_info(db_instance.search_by_id(id))
     if len(txt[5]) == 0:
         await callback.message.edit_caption(caption=txt[4], reply_markup=user_keyboards.inline_keyboard2)
     else:
@@ -88,7 +90,7 @@ async def process_button_1_press(callback: CallbackQuery):
 @router.callback_query(F.data == 'big_button_1_pressed')
 async def process_button_1_press(callback: CallbackQuery):
     id = get_id(callback.message.caption)
-    description = get_info(search_by_id(id))[1]
+    description = db_instance.get_info(db_instance.search_by_id(id))[1]
     name = callback.message.caption
     name = name[:name.find('(') - 1]
     if len(description) > 0:
@@ -103,7 +105,7 @@ async def process_button_1_press(callback: CallbackQuery):
 @router.callback_query(F.data == 'big_button_2_pressed')
 async def process_button_1_press(callback: CallbackQuery):
     id = get_id(callback.message.caption)
-    similar = get_info(search_by_id(id))[2]
+    similar = db_instance.get_info(db_instance.search_by_id(id))[2]
     name = callback.message.caption
     name = name[:name.find('(') - 1]
     if len(similar) > 0:
@@ -118,7 +120,7 @@ async def process_button_1_press(callback: CallbackQuery):
 @router.callback_query(F.data == 'big_button_3_pressed')
 async def process_button_1_press(callback: CallbackQuery):
     id = get_id(callback.message.caption)
-    trailer = get_info(search_by_id(id))[3]
+    trailer = db_instance.get_info(db_instance.search_by_id(id))[3]
     name = callback.message.caption
     name = name[:name.find('(') - 1]
     if len(trailer) > 0:
@@ -133,7 +135,7 @@ async def process_button_1_press(callback: CallbackQuery):
 @router.callback_query(F.data == 'big_button_4_pressed')
 async def process_button_1_press(callback: CallbackQuery):
     id = get_id(callback.message.caption)
-    facts = get_facts(id)
+    facts = db_instance.get_facts(id)
     name = callback.message.caption
     name = name[:name.find('(') - 1]
     if len(facts) > 0:
@@ -153,7 +155,7 @@ async def process_button_1_press(callback: CallbackQuery):
 @router.callback_query(F.data == 'big_button_5_pressed')
 async def process_button_1_press(callback: CallbackQuery):
     id = get_id(callback.message.caption)
-    sequels = get_info(search_by_id(id))[5]
+    sequels = db_instance.get_info(db_instance.search_by_id(id))[5]
     name = callback.message.caption
     name = name[:name.find('(') - 1]
     if len(sequels) > 0:
@@ -166,5 +168,5 @@ async def process_button_1_press(callback: CallbackQuery):
 
 
 def _get_facts_by_page(movie_id: int, page: int = 0) -> Tuple[str, int]:
-    facts = split_text(get_facts(movie_id), config.tg_bot.message_max_symbols)
+    facts = split_text(db_instance.get_facts(movie_id), config.tg_bot.message_max_symbols)
     return facts[page], len(facts)
