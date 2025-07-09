@@ -17,8 +17,6 @@ router = Router()
 config: Config = load_config()
 db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
 
-# TODO сделать lexicon файл
-
 
 @router.message(CheckId())  # /id_...
 async def search(message: Message):
