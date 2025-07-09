@@ -11,6 +11,7 @@ from keyboards import user_keyboards
 from DB.movie_interface import AbstractMovieDB
 from config_data.config import Config, load_config
 from DB.db_factory import DBFactory
+from lexicon.lexicon import LEXICON_RU
 
 router = Router()
 config: Config = load_config()
@@ -35,26 +36,25 @@ async def search(message: Message):
 
 @router.message(CommandStart())  # /start
 async def process_start_command(message: Message):
-    await message.answer('Привет!\nМеня зовут CineBot!\nНапиши /help чтобы узнать, как пользоваться ботом',
-                         reply_markup=user_keyboards.keyboard)
+    await message.answer(LEXICON_RU['/start'], reply_markup=user_keyboards.keyboard)
 
 
 @router.message(Command(commands='cancel'), StateFilter(default_state))   # /cancel
 async def process_cancel_command(message: Message):
-    await message.answer(text='Отменять нечего', reply_markup=user_keyboards.keyboard)
+    await message.answer(text=LEXICON_RU['/cancel'], reply_markup=user_keyboards.keyboard)
 
 
 @router.message(Command(commands='cancel'), ~StateFilter(default_state))   # /cancel
 async def process_cancel_command_state(message: Message, state: FSMContext):
-    await message.answer(text='Вы вышли из поиска фильмов', reply_markup=user_keyboards.keyboard)
+    await message.answer(text=LEXICON_RU['/cancel_movie'], reply_markup=user_keyboards.keyboard)
     await state.clear()
 
 
 @router.message(Command(commands=['help']))  # /help
 async def process_help_command(message: Message):
-    await message.answer(
-        '🌟 Лови горячие команды для поиска фильмов и сериалов! 🎬🔎\n'
-        '✨ /id_xxxx: используй эту команду, чтобы мгновенно найти фильм или сериал по уникальному идентификатору.\n'
-        '💫 "Найти фильм": просто введи название фильма или сериала, и я помогу найти его. Не беспокойся о регистре, но старайся соблюдать орфографию, чтобы результат был точным. Если что, посмотри правильное название на Кинопоиске.\n'
-        '🌟 "Рандомный фильм": дай мне шанс удивить тебя! Я найду случайный фильм с рейтингом не менее 7.0 на КиноПоиске и с количеством оценок не меньше 50 тысяч. Подготовься к незабываемому просмотру! 🍿🎉',
-        reply_markup=user_keyboards.keyboard)
+    await message.answer(LEXICON_RU['/help'], reply_markup=user_keyboards.keyboard)
+
+
+@router.message(Command(commands=['about']))  # /help
+async def process_help_command(message: Message):
+    await message.answer(LEXICON_RU['/about'], reply_markup=user_keyboards.keyboard)
