@@ -1,5 +1,7 @@
 import os
 from dataclasses import dataclass
+
+from aiogram import Bot
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
@@ -8,7 +10,7 @@ load_dotenv(find_dotenv())
 @dataclass
 class TgBot:
     token: str
-    message_max_symbols: int = 1024
+    message_max_symbols: int = 400
 
 
 @dataclass
@@ -24,3 +26,8 @@ def load_config() -> Config:
         database_url=os.getenv('DATABASE_URL'),
         db_type=os.getenv('DB_TYPE', 'postgres')  # По умолчанию SQLite, если не указано
     )
+
+
+config: Config = load_config()
+
+bot = Bot(token=config.tg_bot.token, parse_mode="HTML")

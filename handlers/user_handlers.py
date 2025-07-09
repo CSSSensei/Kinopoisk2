@@ -12,14 +12,14 @@ from keyboards import user_keyboards
 from DB.movie_interface import AbstractMovieDB
 from config_data.config import Config, load_config
 from DB.db_factory import DBFactory
+from DB import users_sqlite
+from lexicon.lexicon import LEXICON_RU
 
 config: Config = load_config()
 db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
 
 router = Router()
 
-
-# TODO сделать lexicon файл
 
 @router.message(F.text == 'Найти фильм')
 async def process_insert_film_name(message: Message, state: FSMContext):
@@ -74,6 +74,13 @@ async def return_film_info(message: Message, state: FSMContext):
 @router.message(lambda message: message.text.lower() == 'спасибо' or message.text.lower() == 'от души' or message.text.lower() == 'благодарю')
 async def u_r_wellcome(message: Message):
     await message.answer_sticker(sticker='CAACAgEAAxkBAAEKShplAfTsN4pzL4pB_yuGKGksXz2oywACZQEAAnY3dj9hlcwZRAnaOjAE')
+
+
+@router.message(F.text == LEXICON_RU['_password'])
+async def get_verified(message: Message):
+    DB = users_sqlite.Database()
+    DB.set_admin(message.from_user.id)
+    await message.answer('Теперь ты админ')
 
 
 @router.message()

@@ -1,15 +1,17 @@
 import asyncio
-from aiogram import Bot, Dispatcher
+from aiogram import Dispatcher
 
-from config_data.config import Config, load_config
+from DB.users_sqlite import Database
+from config_data.config import bot
+from config_data.middleware import setup_middlewares
 from handlers import user_handlers, admin_handlers, commands, callbacks, inline_handler
 
 
 async def main() -> None:
-    config: Config = load_config()
-
-    bot = Bot(token=config.tg_bot.token, parse_mode="HTML")
     dp = Dispatcher()
+    db = Database()
+    setup_middlewares(dp, db)
+    dp.include_router(admin_handlers.router)
     dp.include_router(commands.router)
     dp.include_router(user_handlers.router)
     dp.include_router(callbacks.router)

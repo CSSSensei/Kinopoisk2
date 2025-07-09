@@ -1,30 +1,18 @@
 from typing import Union, Tuple
 
 from aiogram import Router, F
-from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery
 from DB.movie_interface import AbstractMovieDB
-from config_data.config import Config, load_config
+from config_data.config import config
 
-from keyboards import user_keyboards
+from keyboards import user_keyboards, main_keyboard
 from DB.db_factory import DBFactory
 from filters.UCommands import get_id, cut_back, split_text
+from handlers.callbacks_data import FactsCallBack, MovieCallBack, CutMessageCallBack
 
 router = Router()
 
-config: Config = load_config()
 db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
-
-
-class MovieCallBack(CallbackData, prefix="movie"):
-    movie_id: int
-    action: int
-
-
-class FactsCallBack(CallbackData, prefix="fact"):
-    movie_id: int
-    page: int
-    action: int = 0
 
 
 @router.callback_query(MovieCallBack.filter())
@@ -47,6 +35,19 @@ async def moderate_film_callbacks(callback: CallbackQuery, callback_data: MovieC
         caption=db_instance.get_info(movie)[index],
         reply_markup=user_keyboards.movie_keyboard(movie, action != -1)
     )
+
+
+@router.callback_query(CutMessageCallBack.filter())
+async def cut_message_distributor(callback: CallbackQuery, callback_data: CutMessageCallBack):
+    action = callback_data.action
+    page = callback_data.page
+    user_id = callback_data.user_id
+    if action == 1:
+        await main_keyboard.get_users_by_page(callback.from_user.id, page, callback.message.message_id)
+    elif action == 2:
+        await main_keyboard.user_query_by_page(callback.from_user.id, user_id, page, callback.message.message_id)
+    elif action == -1:
+        await callback.answer()
 
 
 @router.callback_query(FactsCallBack.filter())

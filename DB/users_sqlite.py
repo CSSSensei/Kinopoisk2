@@ -1,11 +1,15 @@
 import sqlite3
-from typing import Optional, List, Tuple, Dict, Any
+import os
+from datetime import datetime, timedelta
+from typing import List, Optional, Iterator
+from config_data.models import User, Query
 
 
 class Database:
-    def __init__(self, db_name: str = 'users.db'):
+    def __init__(self, db_name: str = f'{os.path.dirname(__file__)}/users.db'):
         """Инициализация базы данных и создание таблиц"""
         self.conn = sqlite3.connect(db_name)
+        self.conn.row_factory = sqlite3.Row
         self.cursor = self.conn.cursor()
         self._create_tables()
 
@@ -33,143 +37,287 @@ class Database:
         self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_queries ON queries(user_id)')
         self.conn.commit()
 
-    def add_user(self, user_id: int, username: Optional[str] = None,
-                 first_name: Optional[str] = None, last_name: Optional[str] = None):
+    def add_user(self, user: User) -> User:
         """Добавление нового пользователя"""
         self.cursor.execute('''
-        INSERT OR IGNORE INTO users (user_id, username, first_name, last_name)
-        VALUES (?, ?, ?, ?)''', (user_id, username, first_name, last_name))
+        INSERT OR IGNORE INTO users (user_id, username, first_name, last_name, is_admin)
+        VALUES (?, ?, ?, ?, ?)''',
+                            (user.user_id, user.username, user.first_name, user.last_name, int(user.is_admin)))
         self.conn.commit()
+        return self.get_user(user.user_id)
 
-    def get_user(self, user_id: int) -> Optional[Dict[str, Any]]:
-        """Получение информации о пользователе"""
+    def get_user(self, user_id: int) -> Optional[User]:
+        """Получение пользователя по ID"""
         self.cursor.execute('''
         SELECT user_id, username, first_name, last_name, is_admin, registration_date 
         FROM users WHERE user_id = ?''', (user_id,))
         row = self.cursor.fetchone()
         if row:
-            return {
-                'user_id': row[0],
-                'username': row[1],
-                'first_name': row[2],
-                'last_name': row[3],
-                'is_admin': bool(row[4]),
-                'registration_date': row[5]
-            }
+            return User(
+                user_id=row['user_id'],
+                username=row['username'],
+                first_name=row['first_name'],
+                last_name=row['last_name'],
+                is_admin=bool(row['is_admin']),
+                registration_date=(
+                        datetime.fromisoformat(row['registration_date']) + timedelta(hours=3)
+                        if row['registration_date']
+                        else None
+                    )
+            )
         return None
 
-    def update_user_info(self, user_id: int, username: Optional[str] = None,
-                         first_name: Optional[str] = None, last_name: Optional[str] = None):
+    def update_user(self, user: User) -> Optional[User]:
         """Обновление информации о пользователе"""
-        current_data = self.get_user(user_id)
-        if not current_data:
-            return
-
-        username = username if username is not None else current_data['username']
-        first_name = first_name if first_name is not None else current_data['first_name']
-        last_name = last_name if last_name is not None else current_data['last_name']
-
         self.cursor.execute('''
         UPDATE users 
-        SET username = ?, first_name = ?, last_name = ?
-        WHERE user_id = ?''', (username, first_name, last_name, user_id))
+        SET username = ?, first_name = ?, last_name = ?, is_admin = ?
+        WHERE user_id = ?''',
+                            (user.username, user.first_name, user.last_name, int(user.is_admin), user.user_id))
         self.conn.commit()
+        return self.get_user(user.user_id)
 
-    def set_admin(self, user_id: int, is_admin: bool = True):
-        """Назначение/снятие прав администратора"""
-        self.cursor.execute('''
-        UPDATE users SET is_admin = ? WHERE user_id = ?''', (int(is_admin), user_id))
-        self.conn.commit()
-
-    def delete_user(self, user_id: int):
+    def delete_user(self, user_id: int) -> bool:
         """Удаление пользователя и всех его запросов"""
         self.cursor.execute('DELETE FROM queries WHERE user_id = ?', (user_id,))
         self.cursor.execute('DELETE FROM users WHERE user_id = ?', (user_id,))
         self.conn.commit()
+        return self.cursor.rowcount > 0
 
-    def get_all_users(self) -> List[Dict[str, Any]]:
-        """Получение списка всех пользователей"""
+    def get_all_users(self) -> Iterator[User]:
+        """Генератор всех пользователей"""
         self.cursor.execute('''
         SELECT user_id, username, first_name, last_name, is_admin, registration_date 
-        FROM users''')
-        return [{
-            'user_id': row[0],
-            'username': row[1],
-            'first_name': row[2],
-            'last_name': row[3],
-            'is_admin': bool(row[4]),
-            'registration_date': row[5]
-        } for row in self.cursor.fetchall()]
+        FROM users ORDER BY registration_date DESC''')
+        for row in self.cursor:
+            yield User(
+                user_id=row['user_id'],
+                username=row['username'],
+                first_name=row['first_name'],
+                last_name=row['last_name'],
+                is_admin=bool(row['is_admin']),
+                registration_date=(
+                        datetime.fromisoformat(row['registration_date']) + timedelta(hours=3)
+                        if row['registration_date']
+                        else None
+                    )
+            )
 
-    def get_admins(self) -> List[int]:
-        """Получение списка ID администраторов"""
-        self.cursor.execute('SELECT user_id FROM users WHERE is_admin = 1')
-        return [row[0] for row in self.cursor.fetchall()]
+    def get_last_queries(self, amount: int = 10) -> List[Query]:
+        """
+        Возвращает последние N запросов из базы данных
+        """
+        if amount < 0:
+            raise ValueError("Amount cannot be negative")
 
-    def is_admin(self, user_id: int) -> bool:
-        """Проверка, является ли пользователь администратором"""
-        self.cursor.execute('SELECT is_admin FROM users WHERE user_id = ?', (user_id,))
-        row = self.cursor.fetchone()
-        return bool(row[0]) if row else False
+        try:
+            self.cursor.execute('''
+                SELECT q.query_id, q.user_id, q.query_text, q.query_date,
+                       u.username, u.first_name, u.last_name, u.is_admin
+                FROM queries q
+                LEFT JOIN users u ON q.user_id = u.user_id
+                ORDER BY q.query_date DESC
+                LIMIT ?
+            ''', (amount,))
 
-    def add_query(self, user_id: int, query_text: str):
+            queries = []
+            for row in self.cursor.fetchall():
+                user = User(
+                    user_id=row['user_id'],
+                    username=row['username'],
+                    first_name=row['first_name'],
+                    last_name=row['last_name'],
+                    is_admin=bool(row['is_admin'])
+                ) if row['user_id'] else None
+
+                query = Query(
+                    query_id=row['query_id'],
+                    user_id=row['user_id'],
+                    query_text=row['query_text'],
+                    query_date=(
+                        datetime.fromisoformat(row['query_date']) + timedelta(hours=3)
+                        if row['query_date']
+                        else None
+                    ),
+                    user=user
+                )
+                queries.append(query)
+
+            return queries
+
+        except sqlite3.Error as e:
+            print(f"Database error in get_last_queries: {e}")
+            return []
+        except Exception as e:
+            print(f"Unexpected error in get_last_queries: {e}")
+            return []
+
+    def get_admins(self) -> Iterator[User]:
+        """Генератор администраторов"""
+        self.cursor.execute('''
+        SELECT user_id, username, first_name, last_name, is_admin, registration_date 
+        FROM users WHERE is_admin = 1''')
+        for row in self.cursor:
+            yield User(
+                user_id=row['user_id'],
+                username=row['username'],
+                first_name=row['first_name'],
+                last_name=row['last_name'],
+                is_admin=True,
+                registration_date=(
+                        datetime.fromisoformat(row['registration_date']) + timedelta(hours=3)
+                        if row['registration_date']
+                        else None
+                    )
+            )
+
+    def add_query(self, query: Query) -> Query:
         """Добавление нового запроса"""
         self.cursor.execute('''
         INSERT INTO queries (user_id, query_text)
-        VALUES (?, ?)''', (user_id, query_text))
+        VALUES (?, ?)''', (query.user_id, query.query_text))
+        query_id = self.cursor.lastrowid
         self.conn.commit()
+        return self.get_query(query_id)
 
-    def get_user_queries(self, user_id: int, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-        """Получение запросов пользователя"""
+    def get_query(self, query_id: int) -> Optional[Query]:
+        """Получение запроса по ID"""
+        self.cursor.execute('''
+        SELECT q.query_id, q.user_id, q.query_text, q.query_date,
+               u.username, u.first_name, u.last_name, u.is_admin
+        FROM queries q
+        LEFT JOIN users u ON q.user_id = u.user_id
+        WHERE q.query_id = ?''', (query_id,))
+        row = self.cursor.fetchone()
+        if row:
+            user = User(
+                user_id=row['user_id'],
+                username=row['username'],
+                first_name=row['first_name'],
+                last_name=row['last_name'],
+                is_admin=bool(row['is_admin'])
+            ) if row['user_id'] else None
+
+            return Query(
+                query_id=row['query_id'],
+                user_id=row['user_id'],
+                query_text=row['query_text'],
+                query_date=(
+                        datetime.fromisoformat(row['query_date']) + timedelta(hours=3)
+                        if row['query_date']
+                        else None
+                    ),
+                user=user
+            )
+        return None
+
+    def get_user_queries(self, user_id: int, limit: Optional[int] = None) -> Iterator[Query]:
+        """Генератор запросов пользователя"""
         query = '''
-        SELECT query_id, query_text, query_date 
-        FROM queries 
-        WHERE user_id = ?
-        ORDER BY query_date DESC'''
+        SELECT q.query_id, q.user_id, q.query_text, q.query_date,
+               u.username, u.first_name, u.last_name, u.is_admin
+        FROM queries q
+        LEFT JOIN users u ON q.user_id = u.user_id
+        WHERE q.user_id = ?
+        ORDER BY q.query_date DESC'''
 
+        params = (user_id,)
         if limit:
             query += ' LIMIT ?'
-            self.cursor.execute(query, (user_id, limit))
-        else:
-            self.cursor.execute(query, (user_id,))
+            params = (user_id, limit)
 
-        return [{
-            'query_id': row[0],
-            'query_text': row[1],
-            'query_date': row[2]
-        } for row in self.cursor.fetchall()]
+        self.cursor.execute(query, params)
+        for row in self.cursor:
+            user = User(
+                user_id=row['user_id'],
+                username=row['username'],
+                first_name=row['first_name'],
+                last_name=row['last_name'],
+                is_admin=bool(row['is_admin'])
+            )
 
-    def get_all_queries(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-        """Получение всех запросов всех пользователей"""
+            yield Query(
+                query_id=row['query_id'],
+                user_id=row['user_id'],
+                query_text=row['query_text'],
+                query_date=(
+                        datetime.fromisoformat(row['query_date']) + timedelta(hours=3)
+                        if row['query_date']
+                        else None
+                    ),
+                user=user
+            )
+
+    def get_all_queries(self, limit: Optional[int] = None) -> Iterator[Query]:
+        """Генератор всех запросов"""
         query = '''
-        SELECT q.query_id, q.user_id, u.username, q.query_text, q.query_date 
+        SELECT q.query_id, q.user_id, q.query_text, q.query_date,
+               u.username, u.first_name, u.last_name, u.is_admin
         FROM queries q
         LEFT JOIN users u ON q.user_id = u.user_id
         ORDER BY q.query_date DESC'''
 
+        params = ()
         if limit:
             query += ' LIMIT ?'
-            self.cursor.execute(query, (limit,))
-        else:
-            self.cursor.execute(query)
+            params = (limit,)
 
-        return [{
-            'query_id': row[0],
-            'user_id': row[1],
-            'username': row[2],
-            'query_text': row[3],
-            'query_date': row[4]
-        } for row in self.cursor.fetchall()]
+        self.cursor.execute(query, params)
+        for row in self.cursor:
+            user = User(
+                user_id=row['user_id'],
+                username=row['username'],
+                first_name=row['first_name'],
+                last_name=row['last_name'],
+                is_admin=bool(row['is_admin'])
+            ) if row['user_id'] else None
 
-    def delete_query(self, query_id: int):
-        """Удаление конкретного запроса"""
+            yield Query(
+                query_id=row['query_id'],
+                user_id=row['user_id'],
+                query_text=row['query_text'],
+                query_date=(
+                        datetime.fromisoformat(row['query_date']) + timedelta(hours=3)
+                        if row['query_date']
+                        else None
+                    ),
+                user=user
+            )
+
+    def set_admin(self, user_id: int, is_admin: bool = True) -> bool:
+        """
+        Устанавливает или снимает права администратора у пользователя
+        """
+        try:
+            # Проверяем существование пользователя
+            self.cursor.execute('SELECT 1 FROM users WHERE user_id = ?', (user_id,))
+            if not self.cursor.fetchone():
+                return False
+
+            # Обновляем статус администратора
+            self.cursor.execute(
+                'UPDATE users SET is_admin = ? WHERE user_id = ?',
+                (int(is_admin), user_id)
+            )
+            self.conn.commit()
+            return True
+
+        except sqlite3.Error as e:
+            print(f"Ошибка при изменении прав администратора: {e}")
+            self.conn.rollback()
+            return False
+
+    def delete_query(self, query_id: int) -> bool:
+        """Удаление запроса по ID"""
         self.cursor.execute('DELETE FROM queries WHERE query_id = ?', (query_id,))
         self.conn.commit()
+        return self.cursor.rowcount > 0
 
-    def delete_all_user_queries(self, user_id: int):
+    def delete_user_queries(self, user_id: int) -> int:
         """Удаление всех запросов пользователя"""
         self.cursor.execute('DELETE FROM queries WHERE user_id = ?', (user_id,))
         self.conn.commit()
+        return self.cursor.rowcount
 
     def close(self):
         """Закрытие соединения с базой данных"""
@@ -184,21 +332,48 @@ class Database:
 
 if __name__ == '__main__':
     with Database() as db:
-        db.add_user(123456789, username='legend', first_name='sergey', last_name='litvinov')
-        db.add_user(987654321, username='pidor', first_name='vova')
+        db.delete_user(972753303)
+        print(*[user for user in db.get_all_users()], sep='\n')
+        print(*[query for query in db.get_all_queries()], sep='\n')
+        exit()
+        user1 = User(
+            user_id=123456789,
+            username='legend',
+            first_name='sergey',
+            last_name='litvinov',
+            is_admin=True
+        )
+        db.add_user(user1)
 
-        db.set_admin(123456789, True)
+        user2 = User(
+            user_id=987654321,
+            username='pidor',
+            first_name='vova'
+        )
+        db.add_user(user2)
 
-        db.add_query(123456789, 'random movie')
-        db.add_query(987654321, 'горбатая гора')
-        db.add_query(123456789, 'порно')
+        query1 = Query(
+            user_id=user1.user_id,
+            query_text='random movie'
+        )
+        db.add_query(query1)
 
-        print("Админы:", db.get_admins())
-        print("Запросы пользователя 123456789:", db.get_user_queries(123456789))
-        print("Все запросы:", db.get_all_queries(limit=2))
+        query2 = Query(
+            user_id=user2.user_id,
+            query_text='горбатая гора'
+        )
+        db.add_query(query2)
 
-        queries = db.get_user_queries(123456789)
-        if queries:
-            db.delete_query(queries[0]['query_id'])
+        print("Админы:")
+        for admin in db.get_admins():
+            print(f"- {admin.full_name()} (ID: {admin.user_id})")
 
-        db.delete_user(987654321)
+        print("\nПоследние запросы:")
+        for query in db.get_all_queries(limit=3):
+            user_info = query.user.full_name() if query.user else f"UserID: {query.user_id}"
+            print(f"[{query.query_date}] {user_info}: {query.query_text}")
+
+        first_query = next(db.get_all_queries(limit=1), None)
+        if first_query:
+            db.delete_query(first_query.query_id)
+            print(f"\nУдален запрос ID: {first_query.query_id}")
