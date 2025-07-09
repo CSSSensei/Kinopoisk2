@@ -153,7 +153,7 @@ class PostgresMovieDB(AbstractMovieDB):
                 f'<b>Режиссер:</b> {movie.director}\n' if movie.director else ''
                 ]
 
-        description = (f'<blockquote>{movie.description}</blockquote>\n\n' if movie.description else '') + (
+        description = (f'<blockquote>{cut_string(movie.description, 800, ".")}</blockquote>\n\n' if movie.description else '') + (
             f'<b>Коротко о фильме:</b>\n<i>{movie.shortDescription}</i>\n' if movie.shortDescription else '')
 
         similar = f'<b>Похожие фильмы:</b>\n{movie.similarMovies.replace("id: ", "/id_")}' if movie.similarMovies else ''
