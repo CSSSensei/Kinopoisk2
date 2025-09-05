@@ -21,7 +21,7 @@ async def get_users_by_page(user_id: int, page: int = 1, message_id: Union[int, 
         elif query_amount > 5:
             emoji = '😎'
         line = (f'<b>{"@" + user.username if user.username else "🐸"}</b> | <i>{user.user_id}</i> |' +
-                (' 👑 |' if user.is_admin else '') + f' {emoji} {query_amount} [{user.registration_date.strftime("%d.%m.%Y")}]')
+                (' 👑 |' if user.is_admin else '') + f' {emoji} {query_amount} [{user.registration_date.strftime("%d.%m.%Y")}]\n')
         txt += line
     txt = format_string.split_text(txt, config.tg_bot.message_max_symbols)
     if not message_id:
