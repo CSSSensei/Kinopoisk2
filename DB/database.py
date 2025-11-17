@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
@@ -11,7 +13,7 @@ engine = create_async_engine(DATABASE_URL)
 SessionLocal = async_sessionmaker(engine)
 
 
-async def execute_query(query_path: str, params: dict = None):
+async def execute_query(query_path: str, params: Optional[dict] = None):
     async with SessionLocal() as session:
         sql = load_query(query_path)
         result = await session.execute(text(sql), params or {})
