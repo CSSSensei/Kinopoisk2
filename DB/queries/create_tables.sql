@@ -75,9 +75,10 @@ CREATE TABLE IF NOT EXISTS media_country (
 
 CREATE TABLE IF NOT EXISTS person (
     person_id SERIAL PRIMARY KEY,
-    full_name VARCHAR(255) NOT NULL,
+    ru_name VARCHAR(255),
+    en_name VARCHAR(255),
     birth_date DATE,
-    bio TEXT
+    photo_url TEXT
 );
 
 CREATE TABLE IF NOT EXISTS role (
