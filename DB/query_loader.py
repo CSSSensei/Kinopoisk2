@@ -1,7 +1,7 @@
 import os
 from functools import lru_cache
 
-BASE_DIR = os.path.join(os.path.dirname(__file__), "queries")
+BASE_DIR = os.path.join(os.path.dirname(__file__), "sql")
 
 
 @lru_cache()
