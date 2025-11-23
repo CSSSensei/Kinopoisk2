@@ -16,10 +16,11 @@ CREATE TABLE IF NOT EXISTS user_account (
 
 CREATE TABLE IF NOT EXISTS media  (
     media_id SERIAL PRIMARY KEY,
+    imdb_id VARCHAR(50),
     title VARCHAR(255) NOT NULL,
-    ru_title VARCHAR(255),
+    rating FLOAT,
+    votes INT,
     en_title VARCHAR(255),
-    original_title VARCHAR(255),
     description TEXT,
     short_description TEXT,
     slogan TEXT,
@@ -27,21 +28,21 @@ CREATE TABLE IF NOT EXISTS media  (
     duration INT,
     posterUrl TEXT,
     posterUrlPreview TEXT,
-    coverUrl TEXT,
     logoUrl TEXT,
     age_rating VARCHAR(20),
     rating_mpaa VARCHAR(10),
-    budget_value VARCHAR(100),
-    fees_world VARCHAR(100),
-    type VARCHAR(50) CHECK (type IN ('movie', 'series', 'cartoon', 'anime', 'other'))
+    budget_value JSON,
+    fees_world JSON,
+    trailer JSON,
+    type VARCHAR(50) CHECK (type IN ('movie', 'series', 'cartoon', 'anime', 'animated-series', 'other'))
 );
 
-CREATE INDEX idx_media_type ON media(type);
-CREATE INDEX idx_media_release_year ON media(release_year);
+CREATE INDEX IF NOT EXISTS idx_media_type ON media(type);
+CREATE INDEX IF NOT EXISTS idx_media_release_year ON media(release_year);
 
 CREATE TABLE IF NOT EXISTS sequels (
     connection_id SERIAL PRIMARY KEY,
-    type VARCHAR(50)
+    type VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS connected_media (
@@ -90,7 +91,8 @@ CREATE TABLE IF NOT EXISTS media_person_role (
     id SERIAL PRIMARY KEY,
     media_id INT REFERENCES media(media_id) ON DELETE CASCADE,
     person_id INT REFERENCES person(person_id) ON DELETE CASCADE,
-    role_id INT REFERENCES role(role_id) ON DELETE CASCADE
+    role_id INT REFERENCES role(role_id) ON DELETE CASCADE,
+    description TEXT
 );
 
 CREATE TABLE IF NOT EXISTS season (
@@ -100,7 +102,7 @@ CREATE TABLE IF NOT EXISTS season (
     title VARCHAR(255)
 );
 
-CREATE INDEX idx_season_media_id ON season(media_id);
+CREATE INDEX IF NOT EXISTS idx_season_media_id ON season(media_id);
 
 CREATE TABLE IF NOT EXISTS episode (
     episode_id SERIAL PRIMARY KEY,
@@ -111,7 +113,7 @@ CREATE TABLE IF NOT EXISTS episode (
     description TEXT
 );
 
-CREATE INDEX idx_episode_season_id ON episode(season_id);
+CREATE INDEX IF NOT EXISTS idx_episode_season_id ON episode(season_id);
 
 CREATE TABLE IF NOT EXISTS review (
     review_id SERIAL PRIMARY KEY,
@@ -122,8 +124,8 @@ CREATE TABLE IF NOT EXISTS review (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_review_media_id ON review(media_id);
-CREATE INDEX idx_review_user_id ON review(user_id);
+CREATE INDEX IF NOT EXISTS idx_review_media_id ON review(media_id);
+CREATE INDEX IF NOT EXISTS idx_review_user_id ON review(user_id);
 
 CREATE TABLE IF NOT EXISTS user_list (
     list_id SERIAL PRIMARY KEY,
@@ -137,8 +139,7 @@ CREATE TABLE IF NOT EXISTS user_list_media (
     PRIMARY KEY (list_id, media_id)
 );
 
-
-CREATE INDEX idx_media_genre ON media_genre(genre_id);
-CREATE INDEX idx_media_country ON media_country(country_id);
-CREATE INDEX idx_media_person ON media_person_role(person_id);
-CREATE INDEX idx_connected_media_parent ON connected_media(parent_id);
+CREATE INDEX IF NOT EXISTS idx_media_genre ON media_genre(genre_id);
+CREATE INDEX IF NOT EXISTS idx_media_country ON media_country(country_id);
+CREATE INDEX IF NOT EXISTS idx_media_person ON media_person_role(person_id);
+CREATE INDEX IF NOT EXISTS idx_connected_media_parent ON connected_media(parent_id);

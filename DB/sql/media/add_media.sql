@@ -1,9 +1,10 @@
 INSERT INTO media (
-    media_id
+    media_id,
+    imdb_id,
     title,
-    ru_title,
+    rating,
+    votes,
     en_title,
-    original_title,
     description,
     short_description,
     slogan,
@@ -11,18 +12,18 @@ INSERT INTO media (
     duration,
     posterUrl,
     posterUrlPreview,
-    coverUrl,
     logoUrl,
     age_rating,
     rating_mpaa,
     budget_value,
     fees_world,
+    trailer,
     type
 )
 VALUES (
     %s, %s, %s, %s, %s,
     %s, %s, %s, %s, %s,
     %s, %s, %s, %s, %s,
-    %s, %s, %s, %s
+    %s, %s, %s, %s, %s
 )
 RETURNING media_id;

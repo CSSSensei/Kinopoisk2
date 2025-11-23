@@ -3,6 +3,6 @@ INSERT INTO person (
     ru_name,
     en_name,
     photo_url,
-    birth_date,
-VALUES (%s, %s, %s)
-RETURNING person_id;
+    birth_date
+)
+VALUES (%s, %s, %s, %s, %s);
