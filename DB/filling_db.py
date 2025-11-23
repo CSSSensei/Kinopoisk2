@@ -1,17 +1,25 @@
 import json
 import os
 
+from dotenv import find_dotenv, load_dotenv
+
 from DB.query_loader import load_query
 import psycopg2
 
-SQL_MEDIA = load_query("sql/media/add_media.sql")
-SQL_GENRE = load_query("sql/media/add_genre.sql")
-SQL_COUNTRY = load_query("sql/media/add_country.sql")
-SQL_MEDIA_GENRE = load_query("sql/media/add_media_genre.sql")
-SQL_MEDIA_COUNTRY = load_query("sql/media/add_media_country.sql")
-SQL_PERSON = load_query("sql/person/add_person.sql")
-SQL_ROLE = load_query("sql/role/add_role.sql")
-SQL_MEDIA_ROLE = load_query("sql/person/add_media_person_role.sql")
+from api_get_movie import get_film, get_film_by_id
+
+SQL_CREATE_TABLES = load_query("create_tables.sql")
+SQL_MEDIA = load_query("media/add_media.sql")
+SQL_GENRE = load_query("media/add_genre.sql")
+SQL_COUNTRY = load_query("media/add_country.sql")
+SQL_MEDIA_GENRE = load_query("media/add_media_genre.sql")
+SQL_MEDIA_COUNTRY = load_query("media/add_media_country.sql")
+SQL_PERSON = load_query("person/add_person.sql")
+SQL_ROLE = load_query("role/add_role.sql")
+SQL_MEDIA_ROLE = load_query("person/add_media_person_role.sql")
+SQL_SEQUELS = load_query("media/add_connected_media.sql")
+
+load_dotenv(find_dotenv())
 
 
 def get_connection():
@@ -24,13 +32,23 @@ def get_connection():
     )
 
 
+def select_fetch_all(query: str, params: tuple):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, params)
+            result = cur.fetchall()
+            return result
+
+
 def execute_returning(query: str, params: tuple):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(query, params)
-            result = cur.fetchone()[0]
             conn.commit()
-            return result
+            result = cur.fetchone()
+            if not result:
+                return None
+            return result[0]
 
 
 def execute_no_return(query: str, params: tuple):
@@ -40,30 +58,41 @@ def execute_no_return(query: str, params: tuple):
             conn.commit()
 
 
-def save_movie(movie: dict):
+def save_movie(movie: dict) -> int:
+    if not movie.get("name"):
+        return 0
+    movie_id = movie.get("id")
+    if execute_returning("SELECT title FROM media WHERE media_id=%s", (movie_id,)):
+        return 0
+    movie_type = movie.get("type")
+    match movie_type:
+        case "tv-series":
+            movie_type = "series"
+    if movie_type not in {'movie', 'series', 'cartoon', 'anime', 'animated-series'}:
+        movie_type = 'other'
     media_id = execute_returning(
         SQL_MEDIA,
         (
-            movie.get("id"),
+            movie_id,
+            movie.get("externalId", {}).get("imdb"),
             movie.get("name"),
-            movie.get("name"),
+            movie.get("rating", {}).get("kp"),
+            movie.get("votes", {}).get("kp"),
             movie.get("enName"),
-            movie.get("alternativeName"),
-            movie.get("alternativeName"),
             movie.get("description"),
             movie.get("shortDescription"),
-            movie.get("slogan"),  # slogan
+            movie.get("slogan"),
             movie.get("year"),
             movie.get("movieLength"),
             movie.get("poster", {}).get("url"),
             movie.get("poster", {}).get("previewUrl"),
             movie.get("logo", {}).get("url"),
-            movie.get("logo", {}).get("previewUrl"),
-            movie.get("ageRating"),  # age_rating
-            movie.get("ratingMpaa"),  # rating_mpaa
-            json.dumps(movie.get("budget")),  # TODO budget_value
-            movie.get("fees"),  # fees_world
-            movie.get("type"),
+            movie.get("ageRating"),
+            movie.get("ratingMpaa"),
+            json.dumps(movie.get("budget")),
+            json.dumps(movie.get("fees")),
+            movie.get("trailers"),
+            movie_type,
         )
     )
 
@@ -83,7 +112,6 @@ def save_movie(movie: dict):
     countries = movie.get("countries", [])
     for c in countries:
         country_name = c["name"]
-
         try:
             country_id = execute_returning(SQL_COUNTRY, (country_name,))
         except psycopg2.errors.UniqueViolation:
@@ -93,15 +121,16 @@ def save_movie(movie: dict):
                     country_id = cur.fetchone()[0]
 
         execute_no_return(SQL_MEDIA_COUNTRY, (media_id, country_id))
-    persons = movie.get("person", [])
+    persons = movie.get("persons", [])
     for p in persons:
         person_id = p["id"]
         person_ru_name = p["name"]
         person_en_name = p["enName"]
         person_photo_url = p["photo"]
         role = p["profession"]
+        description = p["description"]
         try:
-            person_id = execute_returning(SQL_PERSON, (person_id, person_ru_name, person_en_name, person_photo_url, None))
+            execute_no_return(SQL_PERSON, (person_id, person_ru_name, person_en_name, person_photo_url, None))
         except psycopg2.errors.UniqueViolation:
             pass
         try:
@@ -112,7 +141,32 @@ def save_movie(movie: dict):
                     cur.execute("SELECT role_id FROM role WHERE name=%s", (role,))
                     role_id = cur.fetchone()[0]
 
-        execute_no_return(SQL_MEDIA_ROLE, (media_id, person_id, role_id))
+        execute_no_return(SQL_MEDIA_ROLE, (media_id, person_id, role_id, description))
 
-    # TODO sequels
-    print(f"✔ Movie saved: {movie.get('name')} (ID={media_id})")
+    sequels = movie.get("sequelsAndPrequels", [])
+    sequels_added = 0
+    for s in sequels:
+        s_media_id = s["id"]
+        movie_exists_in_db = execute_returning("SELECT * FROM media WHERE media_id=%s", (s_media_id,))
+        if not movie_exists_in_db:
+            sequels_added += save_movie(get_film_by_id(s_media_id))
+            sequels_added += 1
+        execute_no_return(SQL_SEQUELS, (media_id, s_media_id, 1))
+    return sequels_added
+
+
+def add_movies(page_start: int, page_end: int):
+    cnt = 1
+    if page_start > page_end:
+        print("page_end должен быть больше page_start")
+        return
+    for i in range(page_start, page_end):
+        for movie in get_film(i):
+            cnt += save_movie(movie)
+            cnt += 1
+    print(f"Добавлено {cnt} фильмов")
+
+
+if __name__ == '__main__':
+    # execute_no_return(SQL_CREATE_TABLES, tuple())
+    add_movies(1, 5)
