@@ -122,6 +122,7 @@ def save_movie(movie: dict) -> int:
 
         execute_no_return(SQL_MEDIA_COUNTRY, (media_id, country_id))
     persons = movie.get("persons", [])
+    persons = persons[:20] if persons else []
     for p in persons:
         person_id = p["id"]
         person_ru_name = p["name"]
@@ -152,7 +153,7 @@ def save_movie(movie: dict) -> int:
             sequels_added += save_movie(get_film_by_id(s_media_id))
             sequels_added += 1
         execute_no_return(SQL_SEQUELS, (media_id, s_media_id, 1))
-    return sequels_added
+    return sequels_added + 1
 
 
 def add_movies(page_start: int, page_end: int):
@@ -163,7 +164,7 @@ def add_movies(page_start: int, page_end: int):
     for i in range(page_start, page_end):
         for movie in get_film(i):
             cnt += save_movie(movie)
-            cnt += 1
+
     print(f"Добавлено {cnt} фильмов")
 
 
