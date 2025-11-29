@@ -3,10 +3,10 @@ import os
 
 from dotenv import find_dotenv, load_dotenv
 
-from DB.query_loader import load_query
+from query_loader import load_query
 import psycopg2
 
-from api_get_movie import get_film, get_film_by_id
+from api_get_movie import get_film
 
 SQL_CREATE_TABLES = load_query("create_tables.sql")
 SQL_MEDIA = load_query("media/add_media.sql")
@@ -24,11 +24,11 @@ load_dotenv(find_dotenv())
 
 def get_connection():
     return psycopg2.connect(
-        dbname=os.getenv('DB_NAME'),
-        user=os.getenv('USER'),
-        password=os.getenv('PASSWORD'),
-        host=os.getenv('HOST'),
-        port=os.getenv('PORT'),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("USER"),
+        password=os.getenv("PASSWORD"),
+        host=os.getenv("HOST"),
+        port=os.getenv("PORT"),
     )
 
 
@@ -59,7 +59,7 @@ def execute_no_return(query: str, params: tuple):
 
 
 def save_movie(movie: dict) -> int:
-    if not movie.get("name"):
+    if not movie.get("name") or not movie.get("rating", {}).get("kp"):
         return 0
     movie_id = movie.get("id")
     if execute_returning("SELECT title FROM media WHERE media_id=%s", (movie_id,)):
@@ -68,8 +68,8 @@ def save_movie(movie: dict) -> int:
     match movie_type:
         case "tv-series":
             movie_type = "series"
-    if movie_type not in {'movie', 'series', 'cartoon', 'anime', 'animated-series'}:
-        movie_type = 'other'
+    if movie_type not in {"movie", "series", "cartoon", "anime", "animated-series"}:
+        movie_type = "other"
     media_id = execute_returning(
         SQL_MEDIA,
         (
@@ -93,7 +93,7 @@ def save_movie(movie: dict) -> int:
             json.dumps(movie.get("fees")),
             movie.get("trailers"),
             movie_type,
-        )
+        ),
     )
 
     genres = movie.get("genres", [])
@@ -104,7 +104,9 @@ def save_movie(movie: dict) -> int:
         except psycopg2.errors.UniqueViolation:
             with get_connection() as conn:
                 with conn.cursor() as cur:
-                    cur.execute("SELECT genre_id FROM genre WHERE name=%s", (genre_name,))
+                    cur.execute(
+                        "SELECT genre_id FROM genre WHERE name=%s", (genre_name,)
+                    )
                     genre_id = cur.fetchone()[0]
 
         execute_no_return(SQL_MEDIA_GENRE, (media_id, genre_id))
@@ -117,7 +119,9 @@ def save_movie(movie: dict) -> int:
         except psycopg2.errors.UniqueViolation:
             with get_connection() as conn:
                 with conn.cursor() as cur:
-                    cur.execute("SELECT country_id FROM country WHERE name=%s", (country_name,))
+                    cur.execute(
+                        "SELECT country_id FROM country WHERE name=%s", (country_name,)
+                    )
                     country_id = cur.fetchone()[0]
 
         execute_no_return(SQL_MEDIA_COUNTRY, (media_id, country_id))
@@ -131,7 +135,10 @@ def save_movie(movie: dict) -> int:
         role = p["profession"]
         description = p["description"]
         try:
-            execute_no_return(SQL_PERSON, (person_id, person_ru_name, person_en_name, person_photo_url, None))
+            execute_no_return(
+                SQL_PERSON,
+                (person_id, person_ru_name, person_en_name, person_photo_url, None),
+            )
         except psycopg2.errors.UniqueViolation:
             pass
         try:
@@ -144,20 +151,12 @@ def save_movie(movie: dict) -> int:
 
         execute_no_return(SQL_MEDIA_ROLE, (media_id, person_id, role_id, description))
 
-    sequels = movie.get("sequelsAndPrequels", [])
-    sequels_added = 0
-    for s in sequels:
-        s_media_id = s["id"]
-        movie_exists_in_db = execute_returning("SELECT * FROM media WHERE media_id=%s", (s_media_id,))
-        if not movie_exists_in_db:
-            sequels_added += save_movie(get_film_by_id(s_media_id))
-            sequels_added += 1
-        execute_no_return(SQL_SEQUELS, (media_id, s_media_id, 1))
-    return sequels_added + 1
+    print(f"Добавлен фильм: {movie.get('name')}")
+    return 1
 
 
 def add_movies(page_start: int, page_end: int):
-    cnt = 1
+    cnt = 0
     if page_start > page_end:
         print("page_end должен быть больше page_start")
         return
@@ -168,6 +167,6 @@ def add_movies(page_start: int, page_end: int):
     print(f"Добавлено {cnt} фильмов")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # execute_no_return(SQL_CREATE_TABLES, tuple())
-    add_movies(1, 5)
+    add_movies(4, 9)
