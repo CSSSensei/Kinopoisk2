@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS season (
     season_id SERIAL PRIMARY KEY,
     media_id INT REFERENCES media(media_id) ON DELETE CASCADE,
     season_number INT NOT NULL,
-    title VARCHAR(255)
+    release_year INT
 );
 
 CREATE INDEX IF NOT EXISTS idx_season_media_id ON season(media_id);
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS episode (
     season_id INT REFERENCES season(season_id) ON DELETE CASCADE,
     episode_number INT NOT NULL,
     title VARCHAR(255),
-    duration INT,
+    release_date DATE,
     description TEXT
 );
 
