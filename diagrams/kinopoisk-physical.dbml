@@ -11,31 +11,30 @@ Enum age_rating_enum {
 }
 
 Enum mpaa_rating_enum {
-  G
-  PG
+  "G"
+  "PG"
   "PG-13"
-  R
+  "R"
   "NC-17"
 }
 
 Table subscription_type {
   subscription_type_id integer [pk, increment, not null]
   name varchar(100) [not null, unique]
+  description text [null]
 }
 
-Table app_user {
+Table user_account {
   user_id integer [pk, increment, not null]
   email varchar(255) [not null, unique]
   password_hash varchar(255) [not null]
-  last_name varchar(255) [null]
-  first_name varchar(255) [null]
-  middle_name varchar(255) [null]
-  registration_date timestamptz [not null, default: `now()`]
+  full_name varchar(255) [null]
+  registration_date date [not null, default: `CURRENT_DATE`]
   subscription_type_id integer [null]
   subscription_expiry_date date [null]
 
   indexes {
-    subscription_type_id [name: 'idx_app_user_subscription_type_id']
+    subscription_type_id [name: 'idx_user_account_subscription_type_id']
   }
 }
 
@@ -43,13 +42,13 @@ Table review {
   review_id integer [pk, increment, not null]
   user_id integer [not null]
   media_id integer [not null]
-  rating smallint [null, check: `rating BETWEEN 1 AND 10`]
+  rating integer [null, check: `rating BETWEEN 1 AND 10`]
   comment_text text [null]
-  created_at timestamptz [not null, default: `now()`]
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    user_id [name: 'idx_review_user_id']
     media_id [name: 'idx_review_media_id']
+    user_id [name: 'idx_review_user_id']
   }
 }
 
@@ -84,7 +83,7 @@ Table media_country {
 
   indexes {
     (media_id, country_id) [pk]
-    country_id [name: 'idx_media_country_country_id']
+    country_id [name: 'idx_media_country']
   }
 }
 
@@ -99,43 +98,44 @@ Table media_genre {
 
   indexes {
     (media_id, genre_id) [pk]
-    genre_id [name: 'idx_media_genre_genre_id']
+    genre_id [name: 'idx_media_genre']
   }
 }
 
 Table media {
   media_id integer [pk, increment, not null]
-  ru_title varchar(255) [null]
+  imdb_id varchar(50) [null]
+  title varchar(255) [not null]
+  rating float8 [null]
+  votes integer [null]
   en_title varchar(255) [null]
-  original_title varchar(255) [null]
   description text [null]
   short_description text [null]
   slogan text [null]
   release_year integer [null]
-  duration_minutes integer [null]
-  poster_url text [null]
-  poster_preview_url text [null]
-  cover_url text [null]
-  logo_url text [null]
+  duration integer [null]
+  posterurl text [null]
+  posterurlpreview text [null]
+  logourl text [null]
   age_rating age_rating_enum [null]
   rating_mpaa mpaa_rating_enum [null]
-  budget_value numeric(18,2) [null]
-  worldwide_gross numeric(18,2) [null]
-  media_type varchar(50) [null, check: `media_type IN ('movie', 'series', 'cartoon', 'anime', 'animated-series', 'other')`]
+  budget_value json [null]
+  fees_world json [null]
+  trailer json [null]
+  type varchar(50) [null, check: `type IN ('movie', 'series', 'cartoon', 'anime', 'animated-series', 'other')`]
 
   indexes {
-    media_type [name: 'idx_media_type']
     release_year [name: 'idx_media_release_year']
+    type [name: 'idx_media_type']
   }
 }
 
 Table person {
   person_id integer [pk, increment, not null]
-  last_name varchar(255) [null]
-  first_name varchar(255) [null]
-  middle_name varchar(255) [null]
+  ru_name varchar(255) [null]
+  en_name varchar(255) [null]
   birth_date date [null]
-  bio text [null]
+  photo_url text [null]
 }
 
 Table role {
@@ -148,10 +148,11 @@ Table media_person_role {
   media_id integer [not null]
   person_id integer [not null]
   role_id integer [not null]
+  description text [null]
 
   indexes {
     (media_id, person_id, role_id) [unique, name: 'uq_media_person_role']
-    person_id [name: 'idx_media_person_role_person_id']
+    person_id [name: 'idx_media_person']
     role_id [name: 'idx_media_person_role_role_id']
   }
 }
@@ -163,17 +164,17 @@ Table connection_type {
 
 Table connected_media {
   media_id integer [not null]
-  parent_media_id integer [not null]
-  connection_type_id integer [not null]
+  parent_id integer [not null]
+  connection_id integer [not null]
 
   indexes {
-    (media_id, parent_media_id, connection_type_id) [pk]
-    parent_media_id [name: 'idx_connected_media_parent_media_id']
-    connection_type_id [name: 'idx_connected_media_connection_type_id']
+    (media_id, parent_id, connection_id) [pk]
+    parent_id [name: 'idx_connected_media_parent']
+    connection_id [name: 'idx_connected_media_connection_id']
   }
 
   checks {
-    `media_id <> parent_media_id` [name: 'chk_connected_media_not_self']
+    `media_id <> parent_id` [name: 'chk_connected_media_not_self']
   }
 }
 
@@ -181,10 +182,11 @@ Table season {
   season_id integer [pk, increment, not null]
   media_id integer [not null]
   season_number integer [not null]
-  title varchar(255) [null]
+  release_year integer [null]
 
   indexes {
-    (media_id, season_number) [unique, name: 'uq_season_media_number']
+    (media_id, season_number) [unique, name: 'season_media_id_season_number_key']
+    media_id [name: 'idx_season_media_id']
   }
 }
 
@@ -193,29 +195,30 @@ Table episode {
   season_id integer [not null]
   episode_number integer [not null]
   title varchar(255) [null]
-  duration_minutes integer [null]
+  release_date date [null]
   description text [null]
 
   indexes {
-    (season_id, episode_number) [unique, name: 'uq_episode_season_number']
+    (season_id, episode_number) [unique, name: 'episode_season_id_episode_number_key']
+    season_id [name: 'idx_episode_season_id']
   }
 }
 
-Ref fk_app_user_subscription_type_id: app_user.subscription_type_id > subscription_type.subscription_type_id [delete: no action, update: no action]
-Ref fk_review_user_id: review.user_id > app_user.user_id [delete: cascade, update: no action]
+Ref user_account_subscription_type_id_fkey: user_account.subscription_type_id > subscription_type.subscription_type_id [delete: no action, update: no action]
+Ref review_user_id_fkey: review.user_id > user_account.user_id [delete: cascade, update: no action]
 Ref fk_review_media_id: review.media_id > media.media_id [delete: cascade, update: no action]
-Ref fk_user_list_user_id: user_list.user_id > app_user.user_id [delete: cascade, update: no action]
-Ref fk_user_list_media_list_id: user_list_media.list_id > user_list.list_id [delete: cascade, update: no action]
+Ref user_list_user_id_fkey: user_list.user_id > user_account.user_id [delete: cascade, update: no action]
+Ref user_list_media_list_id_fkey: user_list_media.list_id > user_list.list_id [delete: cascade, update: no action]
 Ref fk_user_list_media_media_id: user_list_media.media_id > media.media_id [delete: cascade, update: no action]
-Ref fk_media_country_media_id: media_country.media_id > media.media_id [delete: cascade, update: no action]
-Ref fk_media_country_country_id: media_country.country_id > country.country_id [delete: cascade, update: no action]
-Ref fk_media_genre_media_id: media_genre.media_id > media.media_id [delete: cascade, update: no action]
-Ref fk_media_genre_genre_id: media_genre.genre_id > genre.genre_id [delete: cascade, update: no action]
-Ref fk_media_person_role_media_id: media_person_role.media_id > media.media_id [delete: cascade, update: no action]
-Ref fk_media_person_role_person_id: media_person_role.person_id > person.person_id [delete: cascade, update: no action]
-Ref fk_media_person_role_role_id: media_person_role.role_id > role.role_id [delete: cascade, update: no action]
+Ref media_country_country_id_fkey: media_country.country_id > country.country_id [delete: cascade, update: no action]
+Ref media_country_media_id_fkey: media_country.media_id > media.media_id [delete: cascade, update: no action]
+Ref media_genre_genre_id_fkey: media_genre.genre_id > genre.genre_id [delete: cascade, update: no action]
+Ref media_genre_media_id_fkey: media_genre.media_id > media.media_id [delete: cascade, update: no action]
+Ref media_person_role_media_id_fkey: media_person_role.media_id > media.media_id [delete: cascade, update: no action]
+Ref media_person_role_person_id_fkey: media_person_role.person_id > person.person_id [delete: cascade, update: no action]
+Ref media_person_role_role_id_fkey: media_person_role.role_id > role.role_id [delete: cascade, update: no action]
+Ref connected_media_connection_id_fkey: connected_media.connection_id > connection_type.connection_type_id [delete: cascade, update: no action]
 Ref fk_connected_media_media_id: connected_media.media_id > media.media_id [delete: cascade, update: no action]
-Ref fk_connected_media_parent_media_id: connected_media.parent_media_id > media.media_id [delete: cascade, update: no action]
-Ref fk_connected_media_connection_type_id: connected_media.connection_type_id > connection_type.connection_type_id [delete: cascade, update: no action]
-Ref fk_season_media_id: season.media_id > media.media_id [delete: cascade, update: no action]
-Ref fk_episode_season_id: episode.season_id > season.season_id [delete: cascade, update: no action]
+Ref fk_connected_media_parent_id: connected_media.parent_id > media.media_id [delete: cascade, update: no action]
+Ref season_media_id_fkey: season.media_id > media.media_id [delete: cascade, update: no action]
+Ref episode_season_id_fkey: episode.season_id > season.season_id [delete: cascade, update: no action]

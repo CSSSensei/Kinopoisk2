@@ -1,353 +1,356 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2568" height="1552" viewBox="6 156 2568 1552">
-<rect width="2640" height="1880" fill="white"/>
-<style>.relationship:hover &gt; .route { stroke: #1d4ed8; stroke-width: 2.5; }</style>
-<g id="fk_app_user_subscription_type_id" class="relationship" data-pk="SUBSCRIPTION_TYPE.subscription_type_id" data-fk="APP_USER.subscription_type_id">
-<title>APP_USER.subscription_type_id → SUBSCRIPTION_TYPE.subscription_type_id</title>
-<polyline class="route" points="380,239 450,239 450,421 530,421" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1780" viewBox="10 140 2600 1780">
+<rect x="10" y="140" width="2600" height="1780" fill="white"/>
+<g id="user_account_subscription_type_id_fkey"><title>user_account.subscription_type_id → subscription_type.subscription_type_id</title>
+<polyline points="380,239 450,239 450,369 530,369" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
 <polyline points="385,232 385,246" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="398" cy="239" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="530,429 516,421 530,413" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<circle cx="506" cy="421" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="530,361 516,369 530,377" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<circle cx="506" cy="369" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_user_list_user_id" class="relationship" data-pk="APP_USER.user_id" data-fk="USER_LIST.user_id">
-<title>USER_LIST.user_id → APP_USER.user_id</title>
-<polyline class="route" points="920,239 960,239 960,500 30,500 30,645 70,645" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<g id="review_user_id_fkey"><title>review.user_id → user_account.user_id</title>
+<polyline points="920,239 1000,239 1000,265 1710,265" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
 <polyline points="925,232 925,246" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="932,232 932,246" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="70,653 56,645 70,637" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<circle cx="46" cy="645" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
-</g>
-<g id="fk_review_user_id" class="relationship" data-pk="APP_USER.user_id" data-fk="REVIEW.user_id">
-<title>REVIEW.user_id → APP_USER.user_id</title>
-<polyline class="route" points="920,239 1000,239 1000,265 1710,265" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
-<polyline points="925,232 925,246" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="932,232 932,246" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1710,273 1696,265 1710,257" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1710,257 1696,265 1710,273" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="1686" cy="265" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_review_media_id" class="relationship" data-pk="MEDIA.media_id" data-fk="REVIEW.media_id">
-<title>REVIEW.media_id → MEDIA.media_id</title>
-<polyline class="route" points="1490,619 1530,619 1530,291 1710,291" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<g id="fk_review_media_id"><title>review.media_id → media.media_id</title>
+<polyline points="1490,619 1530,619 1530,291 1710,291" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
 <polyline points="1495,612 1495,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="1502,612 1502,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1710,299 1696,291 1710,283" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1710,283 1696,291 1710,299" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="1686" cy="291" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_user_list_media_list_id" class="relationship" data-pk="USER_LIST.list_id" data-fk="USER_LIST_MEDIA.list_id">
-<title>USER_LIST_MEDIA.list_id → USER_LIST.list_id</title>
-<polyline class="route" points="380,619 455,619 455,649 530,649" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<g id="user_list_user_id_fkey"><title>user_list.user_id → user_account.user_id</title>
+<polyline points="920,239 960,239 960,500 30,500 30,645 70,645" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<polyline points="925,232 925,246" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="932,232 932,246" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="70,637 56,645 70,653" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<circle cx="46" cy="645" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
+</g>
+<g id="user_list_media_list_id_fkey"><title>user_list_media.list_id → user_list.list_id</title>
+<polyline points="380,619 455,619 455,649 530,649" fill="none" stroke="#52677f" stroke-width="1.5"/>
 <polyline points="385,612 385,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="392,612 392,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="530,657 516,649 530,641" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="530,641 516,649 530,657" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="506" cy="649" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_user_list_media_media_id" class="relationship" data-pk="MEDIA.media_id" data-fk="USER_LIST_MEDIA.media_id">
-<title>USER_LIST_MEDIA.media_id → MEDIA.media_id</title>
-<polyline class="route" points="1100,619 940,619 940,675 840,675" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<g id="fk_user_list_media_media_id"><title>user_list_media.media_id → media.media_id</title>
+<polyline points="1100,619 940,619 940,675 840,675" fill="none" stroke="#52677f" stroke-width="1.5"/>
 <polyline points="1095,626 1095,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="1088,626 1088,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="840,667 854,675 840,683" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="840,683 854,675 840,667" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="864" cy="675" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_media_country_country_id" class="relationship" data-pk="COUNTRY.country_id" data-fk="MEDIA_COUNTRY.country_id">
-<title>MEDIA_COUNTRY.country_id → COUNTRY.country_id</title>
-<polyline class="route" points="380,959 455,959 455,985 530,985" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<g id="media_country_country_id_fkey"><title>media_country.country_id → country.country_id</title>
+<polyline points="380,959 455,959 455,985 530,985" fill="none" stroke="#52677f" stroke-width="1.5"/>
 <polyline points="385,952 385,966" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="392,952 392,966" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="530,993 516,985 530,977" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="530,977 516,985 530,993" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="506" cy="985" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_media_country_media_id" class="relationship" data-pk="MEDIA.media_id" data-fk="MEDIA_COUNTRY.media_id">
-<title>MEDIA_COUNTRY.media_id → MEDIA.media_id</title>
-<polyline class="route" points="1100,619 980,619 980,959 840,959" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<g id="media_country_media_id_fkey"><title>media_country.media_id → media.media_id</title>
+<polyline points="1100,619 980,619 980,959 840,959" fill="none" stroke="#52677f" stroke-width="1.5"/>
 <polyline points="1095,626 1095,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="1088,626 1088,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="840,951 854,959 840,967" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="840,967 854,959 840,951" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="864" cy="959" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_media_genre_genre_id" class="relationship" data-pk="GENRE.genre_id" data-fk="MEDIA_GENRE.genre_id">
-<title>MEDIA_GENRE.genre_id → GENRE.genre_id</title>
-<polyline class="route" points="380,1269 455,1269 455,1295 530,1295" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<g id="media_genre_genre_id_fkey"><title>media_genre.genre_id → genre.genre_id</title>
+<polyline points="380,1269 455,1269 455,1295 530,1295" fill="none" stroke="#52677f" stroke-width="1.5"/>
 <polyline points="385,1262 385,1276" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="392,1262 392,1276" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="530,1303 516,1295 530,1287" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="510,1302 510,1288" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="530,1287 516,1295 530,1303" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<circle cx="506" cy="1295" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_media_genre_media_id" class="relationship" data-pk="MEDIA.media_id" data-fk="MEDIA_GENRE.media_id">
-<title>MEDIA_GENRE.media_id → MEDIA.media_id</title>
-<polyline class="route" points="1100,619 1020,619 1020,1269 840,1269" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<g id="media_genre_media_id_fkey"><title>media_genre.media_id → media.media_id</title>
+<polyline points="1100,619 1020,619 1020,1269 840,1269" fill="none" stroke="#52677f" stroke-width="1.5"/>
 <polyline points="1095,626 1095,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="1088,626 1088,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="840,1261 854,1269 840,1277" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="840,1277 854,1269 840,1261" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="864" cy="1269" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_media_person_role_media_id" class="relationship" data-pk="MEDIA.media_id" data-fk="MEDIA_PERSON_ROLE.media_id">
-<title>MEDIA_PERSON_ROLE.media_id → MEDIA.media_id</title>
-<polyline class="route" points="1490,619 1650,619 1650,785 1710,785" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<g id="media_person_role_media_id_fkey"><title>media_person_role.media_id → media.media_id</title>
+<polyline points="1490,619 1650,619 1650,785 1710,785" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
 <polyline points="1495,612 1495,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="1502,612 1502,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1710,793 1696,785 1710,777" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1690,792 1690,778" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1710,777 1696,785 1710,793" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<circle cx="1686" cy="785" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_media_person_role_person_id" class="relationship" data-pk="PERSON.person_id" data-fk="MEDIA_PERSON_ROLE.person_id">
-<title>MEDIA_PERSON_ROLE.person_id → PERSON.person_id</title>
-<polyline class="route" points="2220,619 2140,619 2140,811 2060,811" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<g id="media_person_role_person_id_fkey"><title>media_person_role.person_id → person.person_id</title>
+<polyline points="2220,619 2140,619 2140,811 2060,811" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
 <polyline points="2215,626 2215,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="2208,626 2208,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="2060,803 2074,811 2060,819" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="2060,819 2074,811 2060,803" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="2084" cy="811" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_media_person_role_role_id" class="relationship" data-pk="ROLE.role_id" data-fk="MEDIA_PERSON_ROLE.role_id">
-<title>MEDIA_PERSON_ROLE.role_id → ROLE.role_id</title>
-<polyline class="route" points="2220,989 2140,989 2140,837 2060,837" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<g id="media_person_role_role_id_fkey"><title>media_person_role.role_id → role.role_id</title>
+<polyline points="2220,989 2140,989 2140,837 2060,837" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
 <polyline points="2215,996 2215,982" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="2208,996 2208,982" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="2060,829 2074,837 2060,845" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="2060,845 2074,837 2060,829" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="2084" cy="837" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<g id="fk_season_media_id" class="relationship" data-pk="MEDIA.media_id" data-fk="SEASON.media_id">
-<title>SEASON.media_id → MEDIA.media_id</title>
-<polyline class="route" points="1100,619 1060,619 1060,1535 1100,1535" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
-<polyline points="1095,626 1095,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1088,626 1088,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1100,1543 1086,1535 1100,1527" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<circle cx="1076" cy="1535" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
-</g>
-<g id="fk_episode_season_id" class="relationship" data-pk="SEASON.season_id" data-fk="EPISODE.season_id">
-<title>EPISODE.season_id → SEASON.season_id</title>
-<polyline class="route" points="1440,1509 1575,1509 1575,1535 1710,1535" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
-<polyline points="1445,1502 1445,1516" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1452,1502 1452,1516" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1710,1543 1696,1535 1710,1527" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1690,1542 1690,1528" fill="none" stroke="#52677f" stroke-width="1.6"/>
-</g>
-<g id="fk_connected_media_media_id" class="relationship" data-pk="MEDIA.media_id" data-fk="CONNECTED_MEDIA.media_id">
-<title>CONNECTED_MEDIA.media_id → MEDIA.media_id</title>
-<polyline class="route" points="1490,619 1610,619 1610,1179 1710,1179" fill="none" stroke="#52677f" stroke-width="1.5"/>
-<polyline points="1495,612 1495,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1502,612 1502,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1710,1187 1696,1179 1710,1171" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<circle cx="1686" cy="1179" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
-</g>
-<g id="fk_connected_media_parent_media_id" class="relationship" data-pk="MEDIA.media_id" data-fk="CONNECTED_MEDIA.parent_media_id">
-<title>CONNECTED_MEDIA.parent_media_id → MEDIA.media_id</title>
-<polyline class="route" points="1490,619 1570,619 1570,1205 1710,1205" fill="none" stroke="#52677f" stroke-width="1.5"/>
-<polyline points="1495,612 1495,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1502,612 1502,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="1710,1213 1696,1205 1710,1197" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<circle cx="1686" cy="1205" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
-</g>
-<g id="fk_connected_media_connection_type_id" class="relationship" data-pk="CONNECTION_TYPE.connection_type_id" data-fk="CONNECTED_MEDIA.connection_type_id">
-<title>CONNECTED_MEDIA.connection_type_id → CONNECTION_TYPE.connection_type_id</title>
-<polyline class="route" points="2220,1249 2140,1249 2140,1231 2060,1231" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<g id="connected_media_connection_id_fkey"><title>connected_media.connection_id → connection_type.connection_type_id</title>
+<polyline points="2220,1249 2140,1249 2140,1231 2060,1231" fill="none" stroke="#52677f" stroke-width="1.5"/>
 <polyline points="2215,1256 2215,1242" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <polyline points="2208,1256 2208,1242" fill="none" stroke="#52677f" stroke-width="1.6"/>
-<polyline points="2060,1223 2074,1231 2060,1239" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="2060,1239 2074,1231 2060,1223" fill="none" stroke="#52677f" stroke-width="1.6"/>
 <circle cx="2084" cy="1231" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
 </g>
-<rect x="70" y="180" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<g id="fk_connected_media_media_id"><title>connected_media.media_id → media.media_id</title>
+<polyline points="1490,619 1610,619 1610,1179 1710,1179" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<polyline points="1495,612 1495,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1502,612 1502,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1710,1171 1696,1179 1710,1187" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<circle cx="1686" cy="1179" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
+</g>
+<g id="fk_connected_media_parent_id"><title>connected_media.parent_id → media.media_id</title>
+<polyline points="1490,619 1570,619 1570,1205 1710,1205" fill="none" stroke="#52677f" stroke-width="1.5"/>
+<polyline points="1495,612 1495,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1502,612 1502,626" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1710,1197 1696,1205 1710,1213" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<circle cx="1686" cy="1205" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
+</g>
+<g id="season_media_id_fkey"><title>season.media_id → media.media_id</title>
+<polyline points="1100,619 1060,619 1060,1535 1100,1535" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<polyline points="1095,626 1095,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1088,626 1088,612" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1100,1527 1086,1535 1100,1543" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<circle cx="1076" cy="1535" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
+</g>
+<g id="episode_season_id_fkey"><title>episode.season_id → season.season_id</title>
+<polyline points="1440,1509 1575,1509 1575,1535 1710,1535" fill="none" stroke="#52677f" stroke-width="1.5" stroke-dasharray="6 4"/>
+<polyline points="1445,1502 1445,1516" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1452,1502 1452,1516" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<polyline points="1710,1527 1696,1535 1710,1543" fill="none" stroke="#52677f" stroke-width="1.6"/>
+<circle cx="1686" cy="1535" r="5" fill="white" stroke="#52677f" stroke-width="1.6"/>
+</g>
+<g id="table-subscription_type"><rect x="70" y="180" width="310" height="132" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="70" y="180" width="310" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="225.0" y="205" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">SUBSCRIPTION_TYPE</text>
-<text x="80" y="244" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="146" y="244" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">subscription_type_id</text>
-<text x="80" y="270" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">UQ</text>
-<text x="146" y="270" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">name</text>
-<rect x="530" y="180" width="390" height="288" fill="white" stroke="#52677f" stroke-width="1.2"/>
-<rect x="530" y="180" width="390" height="38" fill="#23384c" stroke="#52677f" stroke-width="1.2"/>
-<text x="725.0" y="205" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" font-weight="700" text-anchor="middle">APP_USER</text>
-<text x="540" y="244" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="606" y="244" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">user_id</text>
-<text x="540" y="270" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">UQ</text>
-<text x="606" y="270" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">email</text>
-<text x="540" y="296" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="606" y="296" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">password_hash</text>
-<text x="540" y="322" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="606" y="322" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">last_name</text>
-<text x="540" y="348" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="606" y="348" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">first_name</text>
-<text x="540" y="374" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="606" y="374" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">middle_name</text>
-<text x="540" y="400" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="606" y="400" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">registration_date</text>
-<text x="540" y="426" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK?</text>
-<text x="606" y="426" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">subscription_type_id</text>
-<text x="540" y="452" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="606" y="452" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">subscription_expiry_date</text>
-<rect x="1710" y="180" width="360" height="210" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="225" y="205" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">SUBSCRIPTION_TYPE</text>
+<text x="80" y="244" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="146" y="244" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">subscription_type_id</text>
+<text x="80" y="270" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ</text>
+<text x="146" y="270" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">name</text>
+<text x="80" y="296" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="146" y="296" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">description</text>
+</g>
+<g id="table-user_account"><rect x="530" y="180" width="390" height="236" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<rect x="530" y="180" width="390" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
+<text x="725" y="205" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">USER_ACCOUNT</text>
+<text x="540" y="244" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="606" y="244" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">user_id</text>
+<text x="540" y="270" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ</text>
+<text x="606" y="270" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">email</text>
+<text x="540" y="296" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="606" y="296" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">password_hash</text>
+<text x="540" y="322" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="606" y="322" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">full_name</text>
+<text x="540" y="348" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="606" y="348" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">registration_date</text>
+<text x="540" y="374" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK?</text>
+<text x="606" y="374" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">subscription_type_id</text>
+<text x="540" y="400" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="606" y="400" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">subscription_expiry_date</text>
+</g>
+<g id="table-review"><rect x="1710" y="180" width="360" height="210" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="1710" y="180" width="360" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="1890.0" y="205" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">REVIEW</text>
-<text x="1720" y="244" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="1786" y="244" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">review_id</text>
-<text x="1720" y="270" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK</text>
-<text x="1786" y="270" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">user_id</text>
-<text x="1720" y="296" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK</text>
-<text x="1786" y="296" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">media_id</text>
-<text x="1720" y="322" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1786" y="322" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">rating</text>
-<text x="1720" y="348" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1786" y="348" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">comment_text</text>
-<text x="1720" y="374" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1786" y="374" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">created_at</text>
-<rect x="70" y="560" width="310" height="132" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="1890" y="205" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">REVIEW</text>
+<text x="1720" y="244" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="1786" y="244" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">review_id</text>
+<text x="1720" y="270" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK</text>
+<text x="1786" y="270" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">user_id</text>
+<text x="1720" y="296" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK</text>
+<text x="1786" y="296" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">media_id</text>
+<text x="1720" y="322" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1786" y="322" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">rating</text>
+<text x="1720" y="348" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1786" y="348" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">comment_text</text>
+<text x="1720" y="374" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1786" y="374" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">created_at</text>
+</g>
+<g id="table-user_list"><rect x="70" y="560" width="310" height="132" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="70" y="560" width="310" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="225.0" y="585" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">USER_LIST</text>
-<text x="80" y="624" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="146" y="624" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">list_id</text>
-<text x="80" y="650" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK</text>
-<text x="146" y="650" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">user_id</text>
-<text x="80" y="676" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="146" y="676" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">list_name</text>
-<rect x="530" y="590" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="225" y="585" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">USER_LIST</text>
+<text x="80" y="624" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="146" y="624" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">list_id</text>
+<text x="80" y="650" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK</text>
+<text x="146" y="650" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">user_id</text>
+<text x="80" y="676" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="146" y="676" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">list_name</text>
+</g>
+<g id="table-user_list_media"><rect x="530" y="590" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="530" y="590" width="310" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="685.0" y="615" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">USER_LIST_MEDIA</text>
-<text x="540" y="654" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="606" y="654" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">list_id</text>
-<text x="540" y="680" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="606" y="680" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">media_id</text>
-<rect x="70" y="900" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="685" y="615" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">USER_LIST_MEDIA</text>
+<text x="540" y="654" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="606" y="654" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">list_id</text>
+<text x="540" y="680" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="606" y="680" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">media_id</text>
+</g>
+<g id="table-country"><rect x="70" y="900" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="70" y="900" width="310" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="225.0" y="925" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">COUNTRY</text>
-<text x="80" y="964" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="146" y="964" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">country_id</text>
-<text x="80" y="990" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">UQ</text>
-<text x="146" y="990" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">name</text>
-<rect x="530" y="900" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="225" y="925" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">COUNTRY</text>
+<text x="80" y="964" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="146" y="964" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">country_id</text>
+<text x="80" y="990" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ</text>
+<text x="146" y="990" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">name</text>
+</g>
+<g id="table-media_country"><rect x="530" y="900" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="530" y="900" width="310" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="685.0" y="925" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">MEDIA_COUNTRY</text>
-<text x="540" y="964" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="606" y="964" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">media_id</text>
-<text x="540" y="990" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="606" y="990" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">country_id</text>
-<rect x="70" y="1210" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="685" y="925" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">MEDIA_COUNTRY</text>
+<text x="540" y="964" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="606" y="964" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">media_id</text>
+<text x="540" y="990" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="606" y="990" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">country_id</text>
+</g>
+<g id="table-genre"><rect x="70" y="1210" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="70" y="1210" width="310" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="225.0" y="1235" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">GENRE</text>
-<text x="80" y="1274" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="146" y="1274" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">genre_id</text>
-<text x="80" y="1300" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">UQ</text>
-<text x="146" y="1300" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">name</text>
-<rect x="530" y="1210" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="225" y="1235" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">GENRE</text>
+<text x="80" y="1274" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="146" y="1274" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">genre_id</text>
+<text x="80" y="1300" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ</text>
+<text x="146" y="1300" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">name</text>
+</g>
+<g id="table-media_genre"><rect x="530" y="1210" width="310" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="530" y="1210" width="310" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="685.0" y="1235" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">MEDIA_GENRE</text>
-<text x="540" y="1274" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="606" y="1274" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">media_id</text>
-<text x="540" y="1300" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="606" y="1300" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">genre_id</text>
-<rect x="1100" y="560" width="390" height="522" fill="white" stroke="#52677f" stroke-width="1.2"/>
-<rect x="1100" y="560" width="390" height="38" fill="#23384c" stroke="#52677f" stroke-width="1.2"/>
-<text x="1295.0" y="585" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" font-weight="700" text-anchor="middle">MEDIA</text>
-<text x="1110" y="624" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="1176" y="624" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">media_id</text>
-<text x="1110" y="650" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="650" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">ru_title</text>
-<text x="1110" y="676" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="676" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">en_title</text>
-<text x="1110" y="702" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="702" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">original_title</text>
-<text x="1110" y="728" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="728" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">description</text>
-<text x="1110" y="754" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="754" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">short_description</text>
-<text x="1110" y="780" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="780" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">slogan</text>
-<text x="1110" y="806" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="806" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">release_year</text>
-<text x="1110" y="832" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="832" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">duration_minutes</text>
-<text x="1110" y="858" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="858" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">poster_url</text>
-<text x="1110" y="884" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="884" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">poster_preview_url</text>
-<text x="1110" y="910" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="910" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">cover_url</text>
-<text x="1110" y="936" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="936" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">logo_url</text>
-<text x="1110" y="962" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="962" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">age_rating</text>
-<text x="1110" y="988" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="988" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">rating_mpaa</text>
-<text x="1110" y="1014" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="1014" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">budget_value</text>
-<text x="1110" y="1040" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="1040" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">worldwide_gross</text>
-<text x="1110" y="1066" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="1066" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">media_type</text>
-<rect x="2220" y="560" width="330" height="210" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="685" y="1235" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">MEDIA_GENRE</text>
+<text x="540" y="1274" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="606" y="1274" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">media_id</text>
+<text x="540" y="1300" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="606" y="1300" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">genre_id</text>
+</g>
+<g id="table-media"><rect x="1100" y="560" width="390" height="574" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<rect x="1100" y="560" width="390" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
+<text x="1295" y="585" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">MEDIA</text>
+<text x="1110" y="624" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="1176" y="624" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">media_id</text>
+<text x="1110" y="650" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="650" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">imdb_id</text>
+<text x="1110" y="676" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="676" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">title</text>
+<text x="1110" y="702" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="702" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">rating</text>
+<text x="1110" y="728" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="728" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">votes</text>
+<text x="1110" y="754" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="754" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">en_title</text>
+<text x="1110" y="780" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="780" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">description</text>
+<text x="1110" y="806" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="806" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">short_description</text>
+<text x="1110" y="832" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="832" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">slogan</text>
+<text x="1110" y="858" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="858" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">release_year</text>
+<text x="1110" y="884" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="884" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">duration</text>
+<text x="1110" y="910" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="910" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">posterurl</text>
+<text x="1110" y="936" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="936" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">posterurlpreview</text>
+<text x="1110" y="962" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="962" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">logourl</text>
+<text x="1110" y="988" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="988" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">age_rating</text>
+<text x="1110" y="1014" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="1014" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">rating_mpaa</text>
+<text x="1110" y="1040" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="1040" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">budget_value</text>
+<text x="1110" y="1066" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="1066" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">fees_world</text>
+<text x="1110" y="1092" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="1092" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">trailer</text>
+<text x="1110" y="1118" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="1118" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">type</text>
+</g>
+<g id="table-person"><rect x="2220" y="560" width="330" height="184" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="2220" y="560" width="330" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="2385.0" y="585" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">PERSON</text>
-<text x="2230" y="624" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="2296" y="624" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">person_id</text>
-<text x="2230" y="650" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="2296" y="650" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">last_name</text>
-<text x="2230" y="676" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="2296" y="676" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">first_name</text>
-<text x="2230" y="702" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="2296" y="702" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">middle_name</text>
-<text x="2230" y="728" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="2296" y="728" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">birth_date</text>
-<text x="2230" y="754" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="2296" y="754" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">bio</text>
-<rect x="2220" y="930" width="330" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="2385" y="585" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">PERSON</text>
+<text x="2230" y="624" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="2296" y="624" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">person_id</text>
+<text x="2230" y="650" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="2296" y="650" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">ru_name</text>
+<text x="2230" y="676" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="2296" y="676" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">en_name</text>
+<text x="2230" y="702" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="2296" y="702" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">birth_date</text>
+<text x="2230" y="728" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="2296" y="728" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">photo_url</text>
+</g>
+<g id="table-role"><rect x="2220" y="930" width="330" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="2220" y="930" width="330" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="2385.0" y="955" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">ROLE</text>
-<text x="2230" y="994" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="2296" y="994" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">role_id</text>
-<text x="2230" y="1020" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">UQ</text>
-<text x="2296" y="1020" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">name</text>
-<rect x="1710" y="700" width="350" height="182" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="2385" y="955" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">ROLE</text>
+<text x="2230" y="994" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="2296" y="994" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">role_id</text>
+<text x="2230" y="1020" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ</text>
+<text x="2296" y="1020" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">name</text>
+</g>
+<g id="table-media_person_role"><rect x="1710" y="700" width="350" height="208" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="1710" y="700" width="350" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="1885.0" y="725" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">MEDIA_PERSON_ROLE</text>
-<text x="1720" y="764" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="1786" y="764" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">id</text>
-<text x="1720" y="790" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK</text>
-<text x="1786" y="790" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">media_id</text>
-<text x="1720" y="816" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK</text>
-<text x="1786" y="816" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">person_id</text>
-<text x="1720" y="842" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK</text>
-<text x="1786" y="842" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">role_id</text>
-<text x="1720" y="867" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="400" text-anchor="start">UQ (media_id, person_id, role_id)</text>
-<rect x="2220" y="1190" width="330" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="1885" y="725" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">MEDIA_PERSON_ROLE</text>
+<text x="1720" y="764" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="1786" y="764" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">id</text>
+<text x="1720" y="790" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK</text>
+<text x="1786" y="790" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">media_id</text>
+<text x="1720" y="816" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK</text>
+<text x="1786" y="816" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">person_id</text>
+<text x="1720" y="842" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK</text>
+<text x="1786" y="842" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">role_id</text>
+<text x="1720" y="868" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1786" y="868" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">description</text>
+<text x="1720" y="892" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ (media_id, person_id, role_id)</text>
+</g>
+<g id="table-connection_type"><rect x="2220" y="1190" width="330" height="106" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="2220" y="1190" width="330" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="2385.0" y="1215" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">CONNECTION_TYPE</text>
-<text x="2230" y="1254" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="2296" y="1254" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">connection_type_id</text>
-<text x="2230" y="1280" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">UQ</text>
-<text x="2296" y="1280" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">name</text>
-<rect x="1710" y="1120" width="350" height="156" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="2385" y="1215" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">CONNECTION_TYPE</text>
+<text x="2230" y="1254" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="2296" y="1254" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">connection_type_id</text>
+<text x="2230" y="1280" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ</text>
+<text x="2296" y="1280" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">name</text>
+</g>
+<g id="table-connected_media"><rect x="1710" y="1120" width="350" height="156" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="1710" y="1120" width="350" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="1885.0" y="1145" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">CONNECTED_MEDIA</text>
-<text x="1720" y="1184" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="1786" y="1184" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">media_id</text>
-<text x="1720" y="1210" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="1786" y="1210" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">parent_media_id</text>
-<text x="1720" y="1236" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK, FK</text>
-<text x="1786" y="1236" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">connection_type_id</text>
-<text x="1720" y="1261" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="400" text-anchor="start">CHECK media_id ≠ parent_media_id</text>
-<rect x="1100" y="1450" width="340" height="182" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="1885" y="1145" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">CONNECTED_MEDIA</text>
+<text x="1720" y="1184" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="1786" y="1184" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">media_id</text>
+<text x="1720" y="1210" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="1786" y="1210" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">parent_id</text>
+<text x="1720" y="1236" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK, FK</text>
+<text x="1786" y="1236" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">connection_id</text>
+<text x="1720" y="1260" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">Медиа не связано с самим собой</text>
+</g>
+<g id="table-season"><rect x="1100" y="1450" width="340" height="182" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="1100" y="1450" width="340" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="1270.0" y="1475" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">SEASON</text>
-<text x="1110" y="1514" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="1176" y="1514" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">season_id</text>
-<text x="1110" y="1540" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK</text>
-<text x="1176" y="1540" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">media_id</text>
-<text x="1110" y="1566" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="1566" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">season_number</text>
-<text x="1110" y="1592" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1176" y="1592" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">title</text>
-<text x="1110" y="1617" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="400" text-anchor="start">UQ (media_id, season_number)</text>
-<rect x="1710" y="1450" width="350" height="234" fill="white" stroke="#52677f" stroke-width="1.2"/>
+<text x="1270" y="1475" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">SEASON</text>
+<text x="1110" y="1514" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="1176" y="1514" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">season_id</text>
+<text x="1110" y="1540" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK</text>
+<text x="1176" y="1540" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">media_id</text>
+<text x="1110" y="1566" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="1566" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">season_number</text>
+<text x="1110" y="1592" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1176" y="1592" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">release_year</text>
+<text x="1110" y="1616" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ (media_id, season_number)</text>
+</g>
+<g id="table-episode"><rect x="1710" y="1450" width="350" height="234" fill="white" stroke="#52677f" stroke-width="1.2"/>
 <rect x="1710" y="1450" width="350" height="38" fill="#e9eef4" stroke="#52677f" stroke-width="1.2"/>
-<text x="1885.0" y="1475" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447" font-weight="700" text-anchor="middle">EPISODE</text>
-<text x="1720" y="1514" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">PK</text>
-<text x="1786" y="1514" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="700" text-anchor="start">episode_id</text>
-<text x="1720" y="1540" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start">FK</text>
-<text x="1786" y="1540" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">season_id</text>
-<text x="1720" y="1566" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1786" y="1566" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">episode_number</text>
-<text x="1720" y="1592" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1786" y="1592" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">title</text>
-<text x="1720" y="1618" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1786" y="1618" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">duration_minutes</text>
-<text x="1720" y="1644" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="700" text-anchor="start"></text>
-<text x="1786" y="1644" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#243447" font-weight="400" text-anchor="start">description</text>
-<text x="1720" y="1669" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#607086" font-weight="400" text-anchor="start">UQ (season_id, episode_number)</text>
+<text x="1885" y="1475" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="bold" fill="#243447" text-anchor="middle">EPISODE</text>
+<text x="1720" y="1514" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">PK</text>
+<text x="1786" y="1514" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#243447" text-anchor="start">episode_id</text>
+<text x="1720" y="1540" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">FK</text>
+<text x="1786" y="1540" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">season_id</text>
+<text x="1720" y="1566" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1786" y="1566" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">episode_number</text>
+<text x="1720" y="1592" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1786" y="1592" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">title</text>
+<text x="1720" y="1618" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1786" y="1618" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">release_date</text>
+<text x="1720" y="1644" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start"></text>
+<text x="1786" y="1644" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">description</text>
+<text x="1720" y="1668" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#607086" text-anchor="start">UQ (season_id, episode_number)</text>
+</g>
+<text x="70" y="1775" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">PK — первичный ключ; FK — внешний; UQ — уникальность; FK? — необязательная ссылка.</text>
+<text x="70" y="1805" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">Сплошная связь: FK входит в PK. Пунктир: FK не входит в PK. Родитель может иметь 0..N дочерних записей.</text>
+<text x="70" y="1840" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="normal" fill="#243447" text-anchor="start">Логическая модель: сущности, атрибуты, ключи и кратности связей.</text>
 </svg>
