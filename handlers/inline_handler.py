@@ -3,12 +3,9 @@ from aiogram import Router, types
 from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
 from config_data.models import Movie
 from filters.UCommands import get_link
-from DB.movie_interface import AbstractMovieDB
-from config_data.config import Config, load_config
-from DB.db_factory import DBFactory
+from db.repositories.movies import MovieRepository
 
-config: Config = load_config()
-db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
+db_instance = MovieRepository()
 
 router = Router()
 

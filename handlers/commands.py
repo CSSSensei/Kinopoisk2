@@ -8,14 +8,11 @@ from aiogram.types import Message
 from filters.UCommands import get_link
 from filters.filters import CheckId
 from keyboards import user_keyboards
-from DB.movie_interface import AbstractMovieDB
-from config_data.config import Config, load_config
-from DB.db_factory import DBFactory
+from db.repositories.movies import MovieRepository
 from lexicon.lexicon import LEXICON_RU
 
 router = Router()
-config: Config = load_config()
-db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
+db_instance = MovieRepository()
 
 
 @router.message(CheckId())  # /id_...

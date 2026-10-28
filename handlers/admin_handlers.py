@@ -2,12 +2,12 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from DB import users_sqlite
+from db.repositories.users import UserRepository
 from filters import filters, format_string
 from keyboards import main_keyboard
 
 router = Router()
-db = users_sqlite.Database()
+db = UserRepository()
 router.message.filter(filters.AdminFilter(db))
 
 

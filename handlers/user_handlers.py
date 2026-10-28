@@ -9,14 +9,11 @@ from filters.UCommands import get_link
 from states.states import SearchMovie
 from keyboards import user_keyboards
 
-from DB.movie_interface import AbstractMovieDB
-from config_data.config import Config, load_config
-from DB.db_factory import DBFactory
-from DB import users_sqlite
+from db.repositories.movies import MovieRepository
+from db.repositories.users import UserRepository
 from lexicon.lexicon import LEXICON_RU
 
-config: Config = load_config()
-db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
+db_instance = MovieRepository()
 
 router = Router()
 
@@ -78,8 +75,8 @@ async def u_r_wellcome(message: Message):
 
 @router.message(F.text == LEXICON_RU['_password'])
 async def get_verified(message: Message):
-    DB = users_sqlite.Database()
-    DB.set_admin(message.from_user.id)
+    users_db = UserRepository()
+    users_db.set_admin(message.from_user.id)
     await message.answer('Теперь ты админ')
 
 

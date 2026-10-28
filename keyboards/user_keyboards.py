@@ -1,6 +1,6 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
-from DB.movie_sqlite import Movie
-from handlers.callbacks import MovieCallBack, FactsCallBack
+from config_data.models import Movie
+from handlers.callbacks_data import MovieCallBack, FactsCallBack
 
 find_movie: KeyboardButton = KeyboardButton(text='Найти фильм')
 random_movie: KeyboardButton = KeyboardButton(text='Рандомный фильм')

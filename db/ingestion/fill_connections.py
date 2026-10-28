@@ -1,21 +1,18 @@
 import asyncio
 import logging
-import os
 from typing import List, Dict, Set
-import psycopg2
 from psycopg2.extras import execute_batch
 
-from dotenv import find_dotenv, load_dotenv
 
 from parser.kinopoisk_parser import KinopoiskRelationshipParser, Relationship
-from query_loader import load_query
+from db.connection import get_engine
+from db.query_loader import load_query
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-load_dotenv(find_dotenv())
 
 BATCH_SIZE = 50
 
@@ -29,19 +26,12 @@ SQL_ADD_CONNECTED_MEDIA = load_query("media/add_connected_media.sql")
 
 class DatabaseManager:
     def __init__(self):
-        self.connection_params = {
-            "dbname": os.getenv("DB_NAME"),
-            "user": "a1142528_yan-toples",
-            "password": os.getenv("PASSWORD"),
-            "host": os.getenv("HOST"),
-            "port": os.getenv("PORT"),
-        }
         self.connection = None
         self.existing_connection_types = {}
 
     def get_connection(self):
         if self.connection is None or self.connection.closed:
-            self.connection = psycopg2.connect(**self.connection_params)
+            self.connection = get_engine().raw_connection()
         return self.connection
 
     def close_connection(self):

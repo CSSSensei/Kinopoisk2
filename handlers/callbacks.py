@@ -2,17 +2,16 @@ from typing import Union, Tuple
 
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
-from DB.movie_interface import AbstractMovieDB
+from db.repositories.movies import MovieRepository
 from config_data.config import config
 
 from keyboards import user_keyboards, main_keyboard
-from DB.db_factory import DBFactory
 from filters.UCommands import get_id, cut_back, split_text
 from handlers.callbacks_data import FactsCallBack, MovieCallBack, CutMessageCallBack
 
 router = Router()
 
-db_instance: AbstractMovieDB = DBFactory.get_db_instance(config)
+db_instance = MovieRepository()
 
 
 @router.callback_query(MovieCallBack.filter())

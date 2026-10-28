@@ -1,15 +1,14 @@
 import json
-import os
 from typing import Dict, List, Set, Tuple
 from collections import defaultdict
 
-from dotenv import find_dotenv, load_dotenv
 
-from query_loader import load_query
+from db.connection import get_engine
+from db.query_loader import load_query
 import psycopg2
 from psycopg2.extras import execute_batch
 
-from api_get_movie import get_film
+from db.ingestion.kinopoisk_dev import get_film
 
 SQL_MEDIA = load_query("media/add_media.sql")
 SQL_GENRE = load_query("media/add_genre.sql")
@@ -21,18 +20,9 @@ SQL_ROLE = load_query("role/add_role.sql")
 SQL_MEDIA_ROLE = load_query("person/add_media_person_role.sql")
 SQL_SEQUELS = load_query("media/add_connected_media.sql")
 
-load_dotenv(find_dotenv())
-
 
 class DatabaseManager:
     def __init__(self):
-        self.connection_params = {
-            "dbname": os.getenv("DB_NAME"),
-            "user": os.getenv("USER"),
-            "password": os.getenv("PASSWORD"),
-            "host": os.getenv("HOST"),
-            "port": os.getenv("PORT"),
-        }
         self.connection = None
         self.existing_media_ids = set()
         self.existing_genres = {}
@@ -42,7 +32,7 @@ class DatabaseManager:
 
     def get_connection(self):
         if self.connection is None or self.connection.closed:
-            self.connection = psycopg2.connect(**self.connection_params)
+            self.connection = get_engine().raw_connection()
         return self.connection
 
     def close_connection(self):

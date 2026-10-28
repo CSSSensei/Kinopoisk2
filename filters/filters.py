@@ -2,7 +2,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 import re
 
-from DB.users_sqlite import Database
+from db.repositories.users import UserRepository
 
 
 class CheckId(BaseFilter):
@@ -11,7 +11,7 @@ class CheckId(BaseFilter):
 
 
 class AdminFilter(BaseFilter):
-    def __init__(self, db: Database):
+    def __init__(self, db: UserRepository):
         self.db = db
 
     async def __call__(self, message: Message) -> bool:

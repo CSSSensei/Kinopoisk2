@@ -2,19 +2,20 @@ from typing import Union
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 import config_data.models
-from DB import users_sqlite
-from config_data.config import config, bot
+from db.repositories.users import UserRepository
+from config_data.config import config
+from config_data.bot import bot
 from filters import format_string
 from handlers.callbacks_data import CutMessageCallBack
 
-DB = users_sqlite.Database()
+users_db = UserRepository()
 
 
 async def get_users_by_page(user_id: int, page: int = 1, message_id: Union[int, None] = None):
-    users = list(DB.get_all_users())
+    users = list(users_db.get_all_users())
     txt = f'Всего пользователей: <b>{len(users)}</b>\n\n'
     for user in users:
-        query_amount = len(list(DB.get_user_queries(user.user_id)))
+        query_amount = len(list(users_db.get_user_queries(user.user_id)))
         emoji = '🐥'
         if query_amount > 100:
             emoji = '🤯'
@@ -32,11 +33,11 @@ async def get_users_by_page(user_id: int, page: int = 1, message_id: Union[int, 
 
 
 async def user_query_by_page(user_id: int, user_id_to_find: Union[int, None], page: int = 1, message_id: Union[int, None] = None):
-    queries = (DB.get_user_queries(user_id_to_find))
+    queries = (users_db.get_user_queries(user_id_to_find))
     if not user_id_to_find or not queries:
         await bot.send_message(chat_id=user_id, text='Неправильный <i>user_id</i> или этот пользователь не отправлял запросы')
         return
-    username = DB.get_user(user_id_to_find).username
+    username = users_db.get_user(user_id_to_find).username
     txt = f'История запросов <b>{"@" + username if username else user_id_to_find}</b>\n\n'
     query: config_data.models.Query
     for query in queries:
