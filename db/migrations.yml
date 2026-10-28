@@ -1,0 +1,5 @@
+conn: ''
+schema: public
+session:
+  - SET lock_timeout = '5s'
+  - SET statement_timeout = '5min'
