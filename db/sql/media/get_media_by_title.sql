@@ -23,7 +23,7 @@ WITH media_info AS (
         m.trailer,
         m.type
     FROM media m
-    WHERE LOWER(m.title) LIKE LOWER('%' || %s || '%') OR LOWER(m.en_title) LIKE LOWER('%' || %s || '%')
+    WHERE LOWER(m.title) LIKE LOWER('%%' || %s || '%%') OR LOWER(m.en_title) LIKE LOWER('%%' || %s || '%%')
     ORDER BY m.votes DESC NULLS LAST, m.rating DESC NULLS LAST
     LIMIT 1
 ),
@@ -33,12 +33,12 @@ sequels_info AS (
         JSON_AGG(
             JSON_BUILD_OBJECT(
                 'parent_id', cm.parent_id,
-                'connection_type', s.type,
+                'connection_type', s.name,
                 'parent_title', parent.title
             )
         ) AS sequels
     FROM connected_media cm
-    JOIN sequels s ON cm.connection_id = s.connection_id
+    JOIN connection_type s ON cm.connection_id = s.connection_type_id
     JOIN media parent ON cm.parent_id = parent.media_id
     WHERE cm.media_id = (SELECT media_id FROM media_info)
     GROUP BY cm.media_id

@@ -9,6 +9,7 @@ import psycopg2
 from psycopg2.extras import execute_batch
 
 from db.ingestion.kinopoisk_dev import get_film
+from db.ingestion.ratings import normalize_age_rating, normalize_mpaa_rating
 
 SQL_MEDIA = load_query("media/add_media.sql")
 SQL_GENRE = load_query("media/add_genre.sql")
@@ -277,8 +278,8 @@ class DatabaseManager:
                                 movie.get("poster", {}).get("url"),
                                 movie.get("poster", {}).get("previewUrl"),
                                 movie.get("logo", {}).get("url"),
-                                movie.get("ageRating"),
-                                movie.get("ratingMpaa"),
+                                normalize_age_rating(movie.get("ageRating")),
+                                normalize_mpaa_rating(movie.get("ratingMpaa")),
                                 json.dumps(movie.get("budget")),
                                 json.dumps(movie.get("fees")),
                                 json.dumps(movie.get("videos", {}).get("trailers")),

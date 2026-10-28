@@ -42,7 +42,7 @@ class DatabaseManager:
     def fetch_existing_connection_types(self):
         conn = self.get_connection()
         with conn.cursor() as cur:
-            cur.execute("SELECT connection_id, type FROM sequels")
+            cur.execute("SELECT connection_type_id, name FROM connection_type")
             self.existing_connection_types = {row[1]: row[0] for row in cur.fetchall()}
 
     def get_or_create_connection_type(self, relationship_type: str) -> int:
@@ -53,12 +53,12 @@ class DatabaseManager:
         try:
             with conn.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO sequels (type) VALUES (%s) ON CONFLICT (type) DO NOTHING",
+                    "INSERT INTO connection_type (name) VALUES (%s) ON CONFLICT (name) DO NOTHING",
                     (relationship_type,),
                 )
 
                 cur.execute(
-                    "SELECT connection_id FROM sequels WHERE type = %s",
+                    "SELECT connection_type_id FROM connection_type WHERE name = %s",
                     (relationship_type,),
                 )
                 result = cur.fetchone()

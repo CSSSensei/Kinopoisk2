@@ -1,3 +1,3 @@
-INSERT INTO sequels (type)
+INSERT INTO connection_type (name)
 VALUES (%s)
-RETURNING connection_id;
+RETURNING connection_type_id;
