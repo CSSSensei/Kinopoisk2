@@ -8,7 +8,7 @@ from uuid import UUID
 from psycopg2.extras import Json, execute_values
 
 from db.ingestion.bulk import upsert_rows
-from db.ingestion.details import DetailChanges, save_relationships, save_series
+from db.ingestion.details import DetailChanges, save_bot_sections, save_relationships, save_series
 from db.ingestion.ratings import normalize_age_rating, normalize_mpaa_rating
 from parser.graphql.models import Movie, MovieDetails
 
@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 def votes_above(movie: Movie, threshold: int) -> bool:
-    rating = movie.rating_kp
-    return rating is not None and rating.votes is not None and rating.votes > threshold
+    votes = movie.votes_kp if "votes_kp" in movie.loaded_fields else getattr(movie.rating_kp, "votes", None)
+    return votes is not None and votes > threshold
 
 
 def media_patch(movie: Movie) -> dict:
@@ -35,12 +35,19 @@ def media_patch(movie: Movie) -> dict:
         ('description', 'description'), ('short_description', 'short_description'),
         ('slogan', 'slogan'), ('release_year', 'release_year'),
         ('duration_minutes', 'duration'),
+        ('content_id', 'content_id'), ('top250', 'top250'), ('top10', 'top10'),
+        ('votes_kp', 'votes'), ('votes_imdb', 'votes_imdb'),
     ):
         if source in patch:
             row[column] = patch[source]
-    if 'rating_kp' in patch:
+    if 'rating_kp' in patch and (movie.rating_kp is None or 'value' in movie.rating_kp.model_fields_set):
         row['rating'] = movie.rating_kp.value if movie.rating_kp else None
-        row['votes'] = movie.rating_kp.votes if movie.rating_kp else None
+    if 'votes_kp' not in patch and movie.rating_kp is not None and 'votes' in movie.rating_kp.model_fields_set:
+        row['votes'] = movie.rating_kp.votes
+    if 'rating_imdb' in patch and (movie.rating_imdb is None or 'value' in movie.rating_imdb.model_fields_set):
+        row['rating_imdb'] = movie.rating_imdb.value if movie.rating_imdb else None
+    if 'trailer_url' in patch:
+        row['trailer'] = Json([{'url': movie.trailer_url}]) if movie.trailer_url else None
     for source, column in (('budget', 'budget_value'), ('fees_world', 'fees_world')):
         if source in patch:
             row[column] = Json(patch[source]) if patch[source] is not None else None
@@ -64,7 +71,7 @@ class IngestionStore:
         connection = self.engine.raw_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SET LOCAL search_path = public, pg_catalog")
+                cursor.execute("SET LOCAL search_path = kinopoisk, pg_catalog")
                 cursor.execute("SET LOCAL lock_timeout = '5s'")
                 cursor.execute("SET LOCAL statement_timeout = '30s'")
                 yield cursor
@@ -84,6 +91,9 @@ class IngestionStore:
                 'media_person_role': {'media_id', 'person_id', 'role_id'},
                 'media_genre': {'media_id', 'genre_id'},
                 'media_country': {'media_id', 'country_id'},
+                'media_alias': {'media_id', 'name'},
+                'media_fact': {'media_id', 'position'},
+                'media_recommendation': {'media_id', 'recommended_id'},
                 'season': {'media_id', 'season_number'},
                 'episode': {'season_id', 'episode_number'},
                 'connection_type': {'name'},
@@ -98,7 +108,7 @@ class IngestionStore:
                 JOIN pg_namespace n ON n.oid = c.relnamespace
                 CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY k(attnum, ordinality)
                 JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = k.attnum
-                WHERE n.nspname = 'public' AND i.indisunique AND i.indisvalid
+                WHERE n.nspname = 'kinopoisk' AND i.indisunique AND i.indisvalid
                     AND i.indimmediate AND i.indpred IS NULL AND i.indexprs IS NULL
                     AND k.ordinality <= i.indnkeyatts
                 GROUP BY c.relname, i.indexrelid
@@ -108,7 +118,7 @@ class IngestionStore:
                    for table, columns in required.items() if (table, frozenset(columns)) not in found]
         if missing:
             raise RuntimeError('Missing unique keys: ' + ', '.join(missing)
-                               + '. Check migrations V001, V004, V005 and V006; migrations are not applied automatically.')
+                               + '. Check catalog migrations through V008.')
 
     @contextmanager
     def worker_lock(self):
@@ -247,6 +257,13 @@ class IngestionStore:
             touched = {movie.id: set() for movie in owned}
             for media_id in changes:
                 touched[media_id].add('media')
+            aliases = sorted({(movie.id, name) for movie in owned
+                              for name in (movie.original_title, movie.russian_title) if name and name != movie.title})
+            if aliases:
+                inserted = execute_values(cursor, '''INSERT INTO media_alias(media_id,name) VALUES %s
+                    ON CONFLICT DO NOTHING RETURNING media_id''', aliases, fetch=True)
+                for (media_id,) in inserted:
+                    touched[media_id].add('media_alias')
             for table, field in (('genre', 'genres'), ('country', 'countries')):
                 for media_id in self._save_entities(cursor, owned, table, field):
                     touched[media_id].add('media_' + table)
@@ -254,6 +271,7 @@ class IngestionStore:
                 touched[media_id].update(tables)
             save_series(cursor, owned_details, detail_changes)
             save_relationships(cursor, owned_details, detail_changes)
+            save_bot_sections(cursor, owned_details, detail_changes)
             for media_id, tables in detail_changes.tables.items():
                 if media_id in touched:
                     touched[media_id].update(tables)

@@ -88,6 +88,39 @@ def save_series(cursor, details: list[MovieDetails], changes: DetailChanges):
         changes.touch(movie_id, 'episode')
 
 
+def save_bot_sections(cursor, details: list[MovieDetails], changes: DetailChanges):
+    facts = []
+    fact_counts = []
+    recommendations = []
+    complete_lists = []
+    for detail in details:
+        if detail.facts is not None:
+            facts.extend(dict(media_id=detail.id, position=position, body=fact.text, is_spoiler=fact.is_spoiler)
+                         for position, fact in enumerate(detail.facts, 1))
+            fact_counts.append((detail.id, len(detail.facts)))
+        if detail.similar is not None:
+            recommendations.extend(dict(media_id=detail.id, recommended_id=target, position=position)
+                                   for position, target in enumerate(detail.similar.items, 1))
+            if detail.similar.complete:
+                complete_lists.append((detail.id, list(detail.similar.items)))
+    for table, rows, key in (("media_fact", facts, "position"),
+                              ("media_recommendation", recommendations, "recommended_id")):
+        for (media_id, _), action in upsert_rows(cursor, table, rows, ("media_id", key)).items():
+            if action != "UNCHANGED":
+                changes.touch(media_id, table)
+    if fact_counts:
+        removed = execute_values(cursor, """DELETE FROM media_fact f USING (VALUES %s) AS snapshot(id, count)
+            WHERE f.media_id=snapshot.id AND f.position>snapshot.count RETURNING media_id""", fact_counts, fetch=True)
+        for (media_id,) in removed:
+            changes.touch(media_id, "media_fact")
+    if complete_lists:
+        removed = execute_values(cursor, """DELETE FROM media_recommendation r USING (VALUES %s) AS snapshot(id, targets)
+            WHERE r.media_id=snapshot.id AND NOT (r.recommended_id=ANY(snapshot.targets::integer[]))
+            RETURNING media_id""", complete_lists, fetch=True)
+        for (media_id,) in removed:
+            changes.touch(media_id, "media_recommendation")
+
+
 def save_relationships(cursor, details: list[MovieDetails], changes: DetailChanges):
     items = [item for detail in details if detail.relationships is not None for item in detail.relationships.items]
     if items:

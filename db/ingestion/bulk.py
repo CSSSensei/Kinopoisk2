@@ -4,7 +4,7 @@ from psycopg2 import sql
 from psycopg2.extras import Json, execute_values
 
 
-_JSON_COLUMNS = {'budget_value', 'fees_world'}
+_JSON_COLUMNS = {'budget_value', 'fees_world', 'trailer'}
 
 
 def _payload(rows):
