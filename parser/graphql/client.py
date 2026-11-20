@@ -2,7 +2,10 @@ import logging
 from dataclasses import dataclass
 from typing import Iterable, Iterator, Optional
 
-from .models import Collection, Episode, Movie, MovieDetails, Relationship, Season, SeriesEpisodes
+from bs4 import BeautifulSoup
+from pydantic import PositiveInt
+
+from .models import Collection, Episode, Fact, Movie, MovieDetails, Relationship, Season, SeriesEpisodes
 from .errors import EpisodeNotFoundError, GraphQLAPIError, KinopoiskAPIError, is_not_found_at
 from .mappers import _integer, _object, _text, episode_from_api, movie_from_api
 from .operations import BaseInfoRequest, CollectionScope, MovieKind, MovieType, Operation
@@ -137,7 +140,64 @@ class KinopoiskClient:
                                            total=total, complete=complete, scope=CollectionScope.SERIES_EPISODES,
                                            limitations=limitations)
         return MovieDetails(movie=movie, seasons=seasons, episodes=episodes,
-                            relationships=self.get_relationships(movie_id))
+                            relationships=self.get_relationships(movie_id),
+                            facts=self.get_facts(movie), similar=self.get_similar(movie))
+
+    def _catalog_section(self, movie, film_operation, series_operation, **variables):
+        if movie.api_type == MovieType.TV_SERIES:
+            operation, root, key = series_operation, "tvSeries", "tvSeriesId"
+        else:
+            operation, root, key = film_operation, "film", "filmId"
+        result = self._request(operation, **{key: movie.id}, **variables).get(root)
+        if not isinstance(result, dict) or type(result.get("id")) is not int or result["id"] != movie.id:
+            raise KinopoiskAPIError(f"{operation}: missing or mismatched movie identity")
+        return result
+
+    def get_facts(self, movie: Movie) -> tuple[Fact, ...]:
+        if movie.facts_count == 0:
+            return ()
+        facts = {}
+        total = None
+        while total is None or len(facts) < total:
+            offset = len(facts)
+            root = self._catalog_section(movie, Operation.FILM_FACTS, Operation.SERIES_FACTS,
+                                         triviasType="FACT", triviasLimit=30, triviasOffset=offset)
+            count = self._count(root, "trivias")
+            if root["trivias"].get("offset") != offset or (total is not None and total != count):
+                raise KinopoiskAPIError("Fact pagination changed during collection")
+            total = count
+            items = self._items(root, "trivias")
+            for raw in items:
+                fact_id = _integer(raw.get("id"), "trivias.id", 1)
+                if fact_id in facts or raw.get("type") != "FACT":
+                    raise KinopoiskAPIError("Unexpected or duplicate trivia")
+                body = _text(raw.get("text"), "trivias.text")
+                if not body:
+                    raise KinopoiskAPIError("Missing fact text")
+                soup = BeautifulSoup(body, "html.parser")
+                for br in soup.find_all("br"):
+                    br.replace_with("\n")
+                facts[fact_id] = Fact(id=fact_id, text=soup.get_text().strip(), is_spoiler=raw.get("isSpoiler"))
+            if len(facts) > total or (not items and offset < total):
+                raise KinopoiskAPIError("Incomplete fact pagination")
+        return tuple(facts.values())
+
+    def get_similar(self, movie: Movie) -> Collection[PositiveInt]:
+        ids = []
+        total = 0
+        if movie.similar_count != 0:
+            root = self._catalog_section(movie, Operation.FILM_SIMILAR, Operation.SERIES_SIMILAR,
+                                         similarMoviesLimit=20,
+                                         withUserData=False, seasonSubscriptionsSupported=False)
+            total = self._count(root, "userRecommendations")
+            for raw in self._items(root, "userRecommendations"):
+                target = _object(raw.get("movie"), "userRecommendations.movie")
+                ids.append(_integer(target.get("id"), "userRecommendations.movie.id", 1))
+            if movie.id in ids or len(set(ids)) != len(ids) or len(ids) > total:
+                raise KinopoiskAPIError("Invalid or duplicate recommended movie")
+        return Collection[PositiveInt](items=tuple(ids), total=total, complete=len(ids) == total,
+                                       scope="userRecommendations",
+                                       limitations=() if len(ids) == total else ("Result limited by the API.",))
 
     def _complete_episodes(self, movie: Movie, records: dict[tuple[int, int], Episode],
                            total: int, max_requests: int) -> int:

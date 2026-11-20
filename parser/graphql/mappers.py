@@ -44,10 +44,14 @@ def _rating(value):
     active = value.get("isActive")
     if active is not None and not isinstance(active, bool):
         raise ResponseValidationError("rating.isActive: expected a boolean")
-    return Rating(
-        value=None if value.get("value") is None else _number(value["value"], "rating.value"),
-        votes=_optional_int(value.get("count"), "rating.count"), active=active,
-    )
+    fields = {}
+    if "value" in value:
+        fields["value"] = None if value["value"] is None else _number(value["value"], "rating.value")
+    if "count" in value:
+        fields["votes"] = _optional_int(value["count"], "rating.count")
+    if "isActive" in value:
+        fields["active"] = active
+    return Rating(**fields)
 
 
 def _entities(value, path):
@@ -146,12 +150,35 @@ def movie_from_api(raw):
     if "rating" in raw:
         ratings = raw["rating"]
         if ratings is None:
-            values.update(rating_kp=None, rating_imdb=None)
+            values.update(rating_kp=None, rating_imdb=None, votes_kp=None, votes_imdb=None)
         else:
             ratings = _object(ratings, "rating")
             for target, source in (("rating_kp", "kinopoisk"), ("rating_imdb", "imdb")):
                 if source in ratings:
-                    values[target] = _rating(ratings[source])
+                    entry = ratings[source]
+                    rating = _rating(entry)
+                    values[target] = rating
+                    if entry is None or "count" in entry:
+                        values["votes_kp" if source == "kinopoisk" else "votes_imdb"] = rating.votes if rating else None
+    if "ratingLists" in raw:
+        lists = raw["ratingLists"]
+        for name in ("top250", "top10"):
+            if lists is None:
+                values[name] = None
+            elif name in _object(lists, "ratingLists"):
+                item = lists[name]
+                if item is None:
+                    values[name] = None
+                elif "position" in _object(item, name):
+                    position = item["position"]
+                    values[name] = None if position is None else _integer(position, f"{name}.position", 1)
+    if "mainTrailer" in raw and raw["mainTrailer"] is None:
+        values["trailer_url"] = None
+    elif "mainTrailer" in raw:
+        trailer = _object(raw["mainTrailer"], "mainTrailer")
+        trailer_id = _integer(trailer.get("id"), "mainTrailer.id", 1)
+        kind = "series" if api_type == "TvSeries" else "film"
+        values["trailer_url"] = f"https://www.kinopoisk.ru/{kind}/{movie_id}/video/{trailer_id}/"
     if "restriction" in raw:
         restriction = raw["restriction"]
         if restriction is None:
@@ -189,6 +216,9 @@ def movie_from_api(raw):
         values["credits"] = credits
     for target, source in (("seasons_count", "seasonsAll"), ("episodes_count", "episodes")):
         if source in raw:
+            values[target] = _optional_int(_object(raw[source], source).get("total"), source + ".total")
+    for target, source in (("facts_count", "factsCount"), ("similar_count", "similarMoviesCount")):
+        if source in raw and raw[source] is not None:
             values[target] = _optional_int(_object(raw[source], source).get("total"), source + ".total")
     return Movie(**values)
 

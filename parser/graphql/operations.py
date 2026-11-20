@@ -10,6 +10,10 @@ class Operation(StrEnum):
     SEASON_PAGE = "SerialStructureSeason"
     SEQUELS_PREQUELS = "TouchMovieSequelsPrequels"
     RELATED_MOVIES = "MovieRelatedMovies"
+    FILM_FACTS = "FilmTrivias"
+    SERIES_FACTS = "TvSeriesTrivias"
+    FILM_SIMILAR = "FilmSimilarMovies"
+    SERIES_SIMILAR = "TvSeriesSimilarMovies"
 
 
 class MovieKind(StrEnum):

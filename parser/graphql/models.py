@@ -21,9 +21,9 @@ class PatchModel(ApiModel):
 
 
 class Rating(ApiModel):
-    value: Optional[float]
-    votes: Optional[NonNegativeInt]
-    active: Optional[bool]
+    value: Optional[float] = None
+    votes: Optional[NonNegativeInt] = None
+    active: Optional[bool] = None
 
 
 class NamedEntity(ApiModel):
@@ -71,6 +71,13 @@ class Movie(PatchModel):
     episode_duration_minutes: Optional[NonNegativeInt] = None
     rating_kp: Optional[Rating] = None
     rating_imdb: Optional[Rating] = None
+    votes_kp: Optional[NonNegativeInt] = None
+    votes_imdb: Optional[NonNegativeInt] = None
+    top250: Optional[PositiveInt] = None
+    top10: Optional[PositiveInt] = None
+    trailer_url: Optional[str] = None
+    facts_count: Optional[NonNegativeInt] = None
+    similar_count: Optional[NonNegativeInt] = None
     age_rating: Optional[NonNegativeInt] = None
     rating_mpaa: Optional[str] = None
     genres: tuple[NamedEntity, ...] = ()
@@ -127,6 +134,12 @@ class Relationship(ApiModel):
     relationship_type: Optional[str]
 
 
+class Fact(ApiModel):
+    id: PositiveInt
+    text: str = Field(min_length=1)
+    is_spoiler: bool
+
+
 T = TypeVar("T")
 
 
@@ -154,6 +167,8 @@ class MovieDetails(ApiModel):
     seasons: tuple[Season, ...] = ()
     episodes: Optional[Collection[Episode]] = None
     relationships: Optional[Collection[Relationship]] = None
+    facts: Optional[tuple[Fact, ...]] = None
+    similar: Optional[Collection[PositiveInt]] = None
 
     @property
     def id(self) -> int:
