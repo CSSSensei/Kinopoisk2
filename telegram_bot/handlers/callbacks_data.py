@@ -16,3 +16,15 @@ class CutMessageCallBack(CallbackData, prefix="cut"):
     action: int
     user_id: int = 0
     page: int = 1
+
+
+class SectionPage(CallbackData, prefix="section"):
+    movie_id: int
+    action: int
+    page: int
+
+
+class HistoryChunk(CallbackData, prefix="history"):
+    user_id: int
+    page: int
+    chunk: int

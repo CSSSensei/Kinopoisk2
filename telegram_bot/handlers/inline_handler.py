@@ -1,26 +1,27 @@
-from typing import List
-from aiogram import Router, types
-from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
-from db.repositories.models import Movie
-from telegram_bot.filters.UCommands import get_link
-from db.repositories.movies import MovieRepository
+from aiogram import Router
+from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
+from aiogram.utils.formatting import Text
 
-db_instance = MovieRepository()
-
-router = Router()
+from db.repositories.media import MediaRepository
+from telegram_bot.presenters import pages, summary, web_url
 
 
-@router.inline_query()
-async def inline_get_photo(query: types.InlineQuery):
-    text = query.query
-    movies_list: List[Movie] = db_instance.search_en_name(text)
-    movies_result = []
-    for id, movie in enumerate(movies_list):
-        # movies_result.append(InlineQueryResultPhoto(id=str(id),thumbnail_url=f'https://st.kp.yandex.net/images/film_big/{movie.id}.jpg', photo_url=f'https://st.kp.yandex.net/images/film_big/{movie.id}.jpg', title=movie.ru_name or movie.en_name or 'Без названия', caption=movie.shortDescription))
-        movies_result.append(InlineQueryResultArticle(id=str(id),
-                                                      title=f'{movie.ru_name or movie.en_name or movie.alternativeName or "Без названия"} | {movie.year}',
-                                                      thumbnail_url=get_link(movie.id), url=f'https://www.kinopoisk.ru/film/{movie.id}',
-                                                      input_message_content=InputTextMessageContent(message_text=db_instance.get_info(movie)[6]),
-                                                      hide_url=True,
-                                                      description=f"{movie.rating_kp if movie.rating_kp else '–'} | {movie.shortDescription or movie.description or 'Без описания'}"))
-    await query.answer(movies_result, cache_time=1, is_personal=True)
+async def inline(query: InlineQuery, catalog: MediaRepository):
+    results = []
+    for movie in await catalog.search(query.query):
+        description = movie.short_description or movie.description or ""
+        page = pages(Text(summary(movie), "\n\n", description), 4096)[0]
+        results.append(InlineQueryResultArticle(
+            id=str(movie.media_id), title=f"{movie.title} | {movie.release_year or '—'}",
+            thumbnail_url=web_url(movie.posterurlpreview) or web_url(movie.posterurl),
+            input_message_content=InputTextMessageContent(message_text=page.text, entities=page.entities,
+                                                         parse_mode=None),
+            description=f"{movie.rating if movie.rating is not None else '—'} | {description}",
+        ))
+    await query.answer(results, cache_time=1, is_personal=True)
+
+
+def router():
+    result = Router(name="inline")
+    result.inline_query.register(inline)
+    return result
