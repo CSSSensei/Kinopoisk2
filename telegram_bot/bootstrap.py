@@ -1,6 +1,7 @@
 from contextlib import AsyncExitStack
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.session.aiohttp import AiohttpSession
 
 from db.repositories.media import MediaRepository
 from db.repositories.telegram import TelegramRepository
@@ -30,7 +31,7 @@ async def run_bot() -> None:
     async with AsyncExitStack() as stack:
         container = build_container(settings)
         stack.push_async_callback(container.close)
-        bot = Bot(settings.token)
+        bot = Bot(settings.token, session=AiohttpSession(proxy=settings.proxy_url))
         stack.push_async_callback(bot.session.close)
         dispatcher = build_dispatcher(
             settings, await container.get(MediaRepository), await container.get(TelegramRepository)

@@ -3,7 +3,7 @@ name = "kinopoisk2"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
-    "aiogram>=3,<4",
+    "aiogram[proxy]>=3,<4",
     "asyncpg>=0.29,<1",
     "beautifulsoup4>=4,<5",
     "click>=8.1,<9",

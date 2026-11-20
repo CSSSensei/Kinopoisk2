@@ -10,6 +10,7 @@ class BotConfig:
     token: str = field(repr=False)
     database_url: str = field(repr=False)
     admin_password: str | None = field(default=None, repr=False)
+    proxy_url: str | None = field(default=None, repr=False)
 
     @classmethod
     def load(cls):
@@ -17,4 +18,9 @@ class BotConfig:
         for key in ("BOT_TOKEN", "DATABASE_URL"):
             if not values.get(key):
                 raise ValueError(f"{key} is required")
-        return cls(values["BOT_TOKEN"], values["DATABASE_URL"], values.get("BOT_ADMIN_PASSWORD") or None)
+        return cls(
+            token=values["BOT_TOKEN"],
+            database_url=values["DATABASE_URL"],
+            admin_password=values.get("BOT_ADMIN_PASSWORD") or None,
+            proxy_url=values.get("PROXY_URL") or None,
+        )

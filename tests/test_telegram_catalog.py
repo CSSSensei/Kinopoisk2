@@ -52,6 +52,20 @@ class EntryPointTests(unittest.IsolatedAsyncioTestCase):
             await run_bot()
         polling.assert_awaited_once()
 
+    async def test_polling_uses_proxy_from_config(self):
+        proxy_url = "http://localhost:3128"
+        with (
+            patch.dict(os.environ, {
+                "BOT_TOKEN": "123456:unit-test",
+                "DATABASE_URL": "postgresql://localhost:1/catalog",
+                "PROXY_URL": proxy_url,
+            }),
+            patch.object(Dispatcher, "start_polling", new_callable=AsyncMock) as polling,
+        ):
+            await run_bot()
+        bot, = polling.await_args.args
+        self.assertEqual(bot.session.proxy, proxy_url)
+
 
 class PaginationTests(unittest.TestCase):
     def test_entity_across_caption_pages(self):
