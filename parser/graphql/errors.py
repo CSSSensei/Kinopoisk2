@@ -27,3 +27,10 @@ class GraphQLAPIError(KinopoiskAPIError):
 
 class ResponseValidationError(KinopoiskAPIError):
     pass
+
+
+def is_not_found_at(error: object, *path: str) -> bool:
+    if not isinstance(error, dict) or error.get("path") != list(path):
+        return False
+    extensions = error.get("extensions")
+    return isinstance(extensions, dict) and extensions.get("code") == "NotFoundError"

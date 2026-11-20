@@ -8,7 +8,8 @@ from threading import Event, Lock
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from .errors import GraphQLAPIError, HTTPAPIError, KinopoiskAPIError
+from .errors import GraphQLAPIError, HTTPAPIError, KinopoiskAPIError, is_not_found_at
+from .operations import Operation
 
 ENDPOINT = "https://graphql.kinopoisk.ru/graphql/"
 
@@ -68,7 +69,7 @@ class GraphQLTransport:
             except (TypeError, ValueError, OverflowError):
                 return None
 
-    def request(self, operation, **variables):
+    def request(self, operation: str, **variables):
         # Preserve the wire format of the captured frontend documents.
         query = " ".join(line.strip() for line in self.queries[operation].splitlines() if line.strip()) + " "
         request = Request(
@@ -100,17 +101,13 @@ class GraphQLTransport:
         errors = payload.get("errors") or []
         # The site's document probes both types, including film-only SEO for series IDs.
         ignored_paths = []
-        if operation == "FilmBaseInfo":
+        if operation == Operation.FILM_BASE_INFO:
             if isinstance(data.get("film"), dict) and data.get("tvSeries") is None:
-                ignored_paths = [["tvSeries"]]
+                ignored_paths = [("tvSeries",)]
             elif isinstance(data.get("tvSeries"), dict) and data.get("film") is None:
-                ignored_paths = [["film"], ["webPage", "kpFilmPage"]]
+                ignored_paths = [("film",), ("webPage", "kpFilmPage")]
         if ignored_paths:
-            errors = [error for error in errors if not (
-                isinstance(error, dict) and error.get("path") in ignored_paths
-                and isinstance(error.get("extensions"), dict)
-                and error["extensions"].get("code") == "NotFoundError"
-            )]
+            errors = [error for error in errors if not any(is_not_found_at(error, *path) for path in ignored_paths)]
         if errors:
             raise GraphQLAPIError(operation, errors)
         return data
