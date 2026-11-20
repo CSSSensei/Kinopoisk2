@@ -1,68 +1,39 @@
+from uuid import uuid4
+
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
+from aiogram_dialog import DialogManager
 
 from db.repositories.media import MediaRepository
+from telegram_bot.dialogs.cards import MovieCard
+from telegram_bot.keyboards.user_keyboards import keyboard
 from telegram_bot.lexicon import phrase
-from telegram_bot.handlers.callbacks_data import CardPage
-from telegram_bot.keyboards.user_keyboards import keyboard, movie_keyboard
-from telegram_bot.presenters import Section, pages, sections, web_url
+from telegram_bot.presenters import web_url
 
 
-async def send_card(message, card):
+async def send_card(message, card, dialog_manager):
     if card is None:
         await message.answer(phrase("catalog.missing"), reply_markup=keyboard)
         return
-    content = sections(card)
     poster = web_url(card.posterurl) or web_url(card.posterurlpreview)
-    if poster:
-        chunks = pages(content[Section.CARD], 1024)
+    # Each card keeps its own message and navigation when another film is opened.
+    async with dialog_manager.bg(stack_id=uuid4().hex).fg() as manager:
+        manager.middleware_data["opening_card"] = card
         try:
-            await message.answer_photo(poster, **chunks[0].kwargs(True),
-                                       reply_markup=movie_keyboard(card.media_id, content, total=len(chunks)))
-            return
+            await manager.start(MovieCard.view, data={"media_id": card.media_id, "poster": poster})
         except TelegramBadRequest as exc:
-            if not any(word in exc.message.lower() for word in ("photo", "url", "http", "file", "content type", "image")):
+            if not poster or not any(word in exc.message.lower() for word in ("photo", "url", "http", "file", "content type", "image")):
                 raise
-    chunks = pages(content[Section.CARD], 4096)
-    await message.answer(**chunks[0].kwargs(), reply_markup=movie_keyboard(card.media_id, content, total=len(chunks)))
+            manager.dialog_data["text_only"] = True
+            await manager.show()
 
 
-async def by_id(message: Message, catalog: MediaRepository):
-    await send_card(message, await catalog.card(int(message.text[4:].split("@")[0])))
-
-
-async def show(callback: CallbackQuery, callback_data: CardPage, catalog: MediaRepository):
-    section, page = callback_data.section, callback_data.page
-    message = callback.message
-    if not isinstance(message, Message):
-        await callback.answer(phrase("catalog.stale"))
-        return
-    card = await catalog.card(callback_data.movie_id)
-    if not card:
-        await callback.answer(phrase("catalog.missing"))
-        return
-    content = sections(card)
-    if section not in content:
-        await callback.answer(phrase("catalog.empty_section"))
-        return
-    photo = bool(message.photo)
-    chunks = pages(content[section], 1024 if photo else 4096)
-    if not 0 <= page < len(chunks):
-        await callback.answer(phrase("catalog.stale"))
-        return
-    markup = movie_keyboard(card.media_id, content, section, page, len(chunks))
-    edit = message.edit_caption if photo else message.edit_text
-    try:
-        await edit(**chunks[page].kwargs(photo), reply_markup=markup)
-    except TelegramBadRequest as exc:
-        if "message is not modified" not in exc.message.lower():
-            raise
-    await callback.answer()
+async def by_id(message: Message, catalog: MediaRepository, dialog_manager: DialogManager):
+    await send_card(message, await catalog.card(int(message.text[4:].split("@")[0])), dialog_manager)
 
 
 def router():
     result = Router(name="cards")
     result.message.register(by_id, F.text.regexp(r"^/id_\d{1,10}(?:@\w+)?$"))
-    result.callback_query.register(show, CardPage.filter())
     return result

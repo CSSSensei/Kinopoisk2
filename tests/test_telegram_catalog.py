@@ -11,8 +11,8 @@ import psycopg2
 from psycopg2 import sql
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
-from aiogram.methods import GetMe, SendPhoto
-from aiogram.types import Update, User
+from aiogram.methods import GetMe
+from aiogram.types import InlineKeyboardMarkup, Message, Update, User
 from aiogram.utils.formatting import Spoiler, Text
 from sqlalchemy.engine import URL
 
@@ -161,8 +161,32 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         self.dp = build_dispatcher(self.settings, self.catalog, self.users)
         self.bot = Bot(self.settings.token)
         self.addAsyncCleanup(self.bot.session.close)
-        self.bot.session.make_request = AsyncMock(return_value=True)
+        self.outgoing = {}
+        self.fail_photo = False
+        self.bot.session.make_request = AsyncMock(side_effect=self.telegram_response)
         self.actor = {"id": 1234, "is_bot": False, "first_name": "Имя"}
+
+    async def telegram_response(self, bot, method, **kwargs):
+        name = method.__api_method__
+        if name not in {"sendMessage", "sendPhoto", "editMessageText", "editMessageCaption", "editMessageMedia", "editMessageReplyMarkup"}:
+            return True
+        if name == "sendPhoto" and self.fail_photo:
+            raise TelegramBadRequest(method=method, message="failed to get HTTP URL content")
+        mid = getattr(method, "message_id", None) or len(self.outgoing) + 100
+        payload = dict(self.outgoing.get(mid, {"message_id": mid, "date": 1000,
+                    "chat": {"id": method.chat_id, "type": "private"},
+                    "from": {"id": bot.id, "is_bot": True, "first_name": "Bot"}}))
+        for key in ("text", "caption"):
+            if hasattr(method, key):
+                payload[key] = getattr(method, key)
+        if name == "editMessageMedia":
+            payload["caption"] = method.media.caption
+        if name == "sendPhoto":
+            payload["photo"] = [{"file_id": "poster", "file_unique_id": "unique", "width": 300, "height": 400}]
+        markup = getattr(method, "reply_markup", None)
+        payload["reply_markup"] = markup.model_dump() if isinstance(markup, InlineKeyboardMarkup) else None
+        self.outgoing[mid] = payload
+        return Message.model_validate(payload, context={"bot": bot})
 
     async def feed(self, kind, payload):
         update = Update.model_validate({"update_id": 1, kind: payload}, context={"bot": self.bot})
@@ -175,9 +199,13 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
 
     async def callback(self, data, body="Present (/id_1)", user=None):
         self.bot.session.make_request.reset_mock()
+        source = next((msg for msg in self.outgoing.values() if msg.get("reply_markup") and
+                       any(b.get("callback_data") == data for row in msg["reply_markup"]["inline_keyboard"] for b in row)),
+                      self.message(body))
         await self.feed("callback_query", {"id": "cb", "from": user or self.actor, "chat_instance": "1",
-                                          "message": self.message(body), "data": data})
-        return [call.args[1] for call in self.bot.session.make_request.await_args_list]
+                                          "message": source, "data": data})
+        return sorted((call.args[1] for call in self.bot.session.make_request.await_args_list),
+                      key=lambda method: method.__api_method__ == "answerCallbackQuery")
 
     async def test_catalog_card_and_search(self):
         matches = await self.catalog.search("Absent, Alias")
@@ -205,7 +233,7 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         answer = await self.feed("message", self.message("Alias"))
         self.assertIn("/id_1", answer.text)
         answer = await self.feed("message", self.message("/id_1"))
-        self.assertIn("Present <1>", answer.text)
+        self.assertIn("Present &lt;1&gt;", answer.text)
         self.assertTrue(answer.reply_markup.inline_keyboard)
         random = await self.feed("message", self.message("Рандомный фильм"))
         self.assertIn("/id_1", random.text)
@@ -213,7 +241,7 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("нет", missing.text)
         buttons = {b.text: b.callback_data for row in answer.reply_markup.inline_keyboard for b in row}
         edit, ack = await self.callback(buttons["Факты"])
-        self.assertEqual(edit.entities[0].type, "spoiler")
+        self.assertIn("<tg-spoiler>", edit.text)
         self.assertEqual(ack.__api_method__, "answerCallbackQuery")
         edit, _ = await self.callback(buttons["Похожие фильмы"])
         self.assertIn("/id_2", edit.text)
@@ -222,13 +250,18 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         answer = await self.feed("inline_query", {"id": "i", "from": self.actor, "query": "Alias", "offset": ""})
         self.assertEqual(answer.results[0].id, "1")
 
+    async def test_card_button_after_restart(self):
+        card = await self.feed("message", self.message("/id_1"))
+        button = card.reply_markup.inline_keyboard[0][0]
+        self.dp = build_dispatcher(self.settings, self.catalog, self.users)
+        ack, = await self.callback(button.callback_data)
+        self.assertIn("устарела", ack.text)
+
     async def test_admin_access_and_moderation(self):
         admin_id = self.actor["id"]
         visitor = {**self.actor, "id": 4567, "first_name": "<Посетитель>"}
         public = await self.feed("message", self.message("/cmds", visitor))
         self.assertNotIn("/promote", public.text)
-        denied, = await self.callback("admin:users:0:1:0", user=visitor)
-        self.assertIn("администратора", denied.text)
 
         menu = await self.feed("message", self.message(self.settings.admin_password))
         for name in ("users", "commands", "ban", "unban", "promote", "demote", "query", "clear_temp", "user_query", "test"):
@@ -267,13 +300,13 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
             await self.feed("message", self.message(f"<запрос {i}>", visitor))
         for alias in ("uq", "qu", "user_query"):
             history = await self.feed("message", self.message(f"/{alias} 9001"))
-            self.assertIn("<запрос 7>", history.text)
-            self.assertNotIn("<запрос 0>", history.text)
-            self.assertIn("blockquote", [ent.type for ent in history.entities])
+            self.assertIn("&lt;запрос 7&gt;", history.text)
+            self.assertNotIn("&lt;запрос 0&gt;", history.text)
+            self.assertIn("<blockquote>", history.text)
         nav = history.reply_markup.inline_keyboard[0]
         self.assertEqual([btn.text for btn in nav], [" ", " ", "1", "❯", "2 »"])
         edit, ack = await self.callback(nav[-1].callback_data)
-        self.assertIn("<запрос 0>", edit.text)
+        self.assertIn("&lt;запрос 0&gt;", edit.text)
         self.assertEqual(edit.reply_markup.inline_keyboard[0][0].text, "« 1")
         for i in range(16):
             await self.feed("message", self.message("/help", {**visitor, "id": 9100 + i}))
@@ -287,6 +320,21 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("<запрос 5>", recent.text)
         queries = await self.users.queries(0, 100, self.actor["id"])
         self.assertNotIn(self.settings.admin_password, [r["query_text"] for r in queries])
+
+    async def test_history_parts_and_revoked_access(self):
+        await self.feed("message", self.message(self.settings.admin_password))
+        visitor = {**self.actor, "id": 9988}
+        for suffix in ("first", "last"):
+            await self.feed("message", self.message("🎞" * 1950 + suffix, visitor))
+        history = await self.feed("message", self.message("/uq 9988"))
+        nav = history.reply_markup.inline_keyboard[0]
+        self.assertIn("Часть 1", [b.text for b in nav])
+        edit, _ = await self.callback(nav[-1].callback_data)
+        self.assertIn("first", edit.text)
+        await self.users.set_admin(self.actor["id"], False)
+        denied, _ = await self.callback(edit.reply_markup.inline_keyboard[0][0].callback_data)
+        self.assertIn("администратора", denied.text)
+        self.assertNotIn("first", denied.text)
 
     async def test_clear_temp_is_scoped_to_bot_files(self):
         await self.feed("message", self.message(self.settings.admin_password))
@@ -329,8 +377,22 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         card = await self.catalog.card(70)
         self.assertEqual((card.votes, card.top250, len(card.facts), len(card.similar)), (30, 250, 1, 2))
         self.assertEqual((await self.catalog.search("Original"))[0].media_id, 70)
-        self.bot.session.make_request.side_effect = [
-            TelegramBadRequest(method=SendPhoto(chat_id=1, photo="url"), message="failed to get HTTP URL content"), True]
+        long_fact = Fact(id=9, text="🎞" * 900 + "Конец", is_spoiler=True)
+        refresh((long_fact,), (1, 2), 2)
+        photo = await self.feed("message", self.message("/id_70"))
+        self.assertEqual(photo.__api_method__, "sendPhoto")
+        last_photo_id = max(self.outgoing)
+        facts = next(b for row in photo.reply_markup.inline_keyboard for b in row if b.text == "Факты")
+        first, _ = await self.callback(facts.callback_data)
+        self.assertEqual(first.message_id, last_photo_id)
+        first_caption = self.outgoing[last_photo_id]["caption"]
+        self.assertIn("<tg-spoiler>", first_caption)
+        self.assertNotIn("Конец", first_caption)
+        last, _ = await self.callback(first.reply_markup.inline_keyboard[0][-1].callback_data)
+        self.assertIn("Конец", self.outgoing[last_photo_id]["caption"])
+        back, _ = await self.callback(last.reply_markup.inline_keyboard[-1][0].callback_data)
+        self.assertIn("/id_70", self.outgoing[last_photo_id]["caption"])
+        self.fail_photo = True
         sent = await self.feed("message", self.message("/id_70"))
         self.assertIn("/id_70", sent.text)
         raw["ratingLists"] = {"top250": None}

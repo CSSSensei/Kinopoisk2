@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from aiogram.types import MessageEntity
+from aiogram.utils.text_decorations import html_decoration
 from aiogram.utils.formatting import Text
 
 
@@ -8,6 +9,9 @@ from aiogram.utils.formatting import Text
 class Page:
     text: str
     entities: list[MessageEntity]
+
+    def as_html(self):
+        return html_decoration.unparse(self.text, self.entities)
 
     def kwargs(self, caption=False):
         if caption:

@@ -5,6 +5,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.formatting import Text
 
+from aiogram_dialog import DialogManager
+
 from db.repositories.media import MediaRepository
 from telegram_bot.lexicon import phrase
 from telegram_bot.handlers.cards import send_card
@@ -39,10 +41,10 @@ async def search(message: Message, state: FSMContext, catalog: MediaRepository):
     await state.clear()
 
 
-async def random_media(message: Message, catalog: MediaRepository):
+async def random_media(message: Message, catalog: MediaRepository, dialog_manager: DialogManager):
     card = await catalog.random()
     if card:
-        await send_card(message, card)
+        await send_card(message, card, dialog_manager)
     else:
         await message.answer(phrase("catalog.no_random"), reply_markup=keyboard)
 

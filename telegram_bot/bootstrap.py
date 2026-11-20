@@ -4,15 +4,29 @@ from contextlib import AsyncExitStack
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.exceptions import TelegramAPIError
+from aiogram.filters import ExceptionTypeFilter
+from aiogram.types import ErrorEvent
+from aiogram_dialog import setup_dialogs
+from aiogram_dialog.api.exceptions import OutdatedIntent, UnknownIntent
 
 from db.repositories.media import MediaRepository
 from db.repositories.telegram import TelegramRepository
 from telegram_bot.config import BotConfig
 from telegram_bot.container import build_container
+from telegram_bot.dialogs.admin import admin_dialog
+from telegram_bot.dialogs.cards import card_dialog
 from telegram_bot.handlers import admin_handlers, cards, commands, inline_handler, search
+from telegram_bot.lexicon import phrase
 from telegram_bot.middlewares.users import RegisterUser
 
 logger = logging.getLogger(__name__)
+
+
+async def stale_dialog(event: ErrorEvent):
+    if event.update.callback_query:
+        await event.update.callback_query.answer(phrase("catalog.stale"))
+        return True
+    raise event.exception
 
 
 def build_dispatcher(
@@ -27,7 +41,11 @@ def build_dispatcher(
         cards.router(),
         inline_handler.router(),
         search.router(),
+        admin_dialog(),
+        card_dialog(),
     )
+    setup_dialogs(dispatcher)
+    dispatcher.errors.register(stale_dialog, ExceptionTypeFilter(UnknownIntent, OutdatedIntent))
     return dispatcher
 
 

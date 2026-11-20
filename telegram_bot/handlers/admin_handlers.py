@@ -6,15 +6,17 @@ from pathlib import Path
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.filters import Command, CommandObject
-from aiogram.types import CallbackQuery, LinkPreviewOptions, Message
+from aiogram.types import LinkPreviewOptions, Message
 from aiogram.utils.formatting import Italic
+
+from aiogram_dialog import DialogManager, StartMode
 
 from db.repositories.telegram import TelegramRepository
 from telegram_bot.lexicon import phrase, rich_phrase
 from telegram_bot.config import BotConfig
-from telegram_bot.dialogs.admin import admin_page, mention, query_list
+from telegram_bot.dialogs.admin import AdminList
+from telegram_bot.presenters.admin import mention, query_list
 from telegram_bot.handlers.admin_commands import ADMIN_COMMANDS, command_menu
-from telegram_bot.handlers.callbacks_data import AdminPage
 from telegram_bot.presenters import pages
 
 logger = logging.getLogger(__name__)
@@ -99,44 +101,26 @@ async def recent(message: Message, command: CommandObject, users: TelegramReposi
         await message.answer(phrase("admin.no_queries"))
 
 
-async def show_page(message, users, cursor):
-    result = await admin_page(users, cursor)
-    if result is None:
-        await message.answer(phrase("error.no_history"))
-        return
-    page, markup = result
-    await message.bot.send_message(message.from_user.id, **page.kwargs(), reply_markup=markup,
-                                   link_preview_options=NO_PREVIEW)
+async def start_list(message, manager, state, data=None):
+    if message.chat.id == message.from_user.id:
+        await manager.start(state, mode=StartMode.RESET_STACK, data=data)
+    else:
+        await manager.bg(chat_id=message.from_user.id, thread_id=None).start(
+            state, mode=StartMode.RESET_STACK, data=data,
+        )
 
 
-async def show_users(message: Message, users: TelegramRepository):
-    await show_page(message, users, AdminPage(view="users"))
+async def show_users(message: Message, dialog_manager: DialogManager):
+    await start_list(message, dialog_manager, AdminList.users)
 
 
-async def user_queries(message: Message, command: CommandObject, users: TelegramRepository):
+async def user_queries(message: Message, command: CommandObject, users: TelegramRepository, dialog_manager: DialogManager):
     user = await target_user(message, command, users)
     if user is not None:
-        await show_page(message, users, AdminPage(view="queries", user_id=user["user_id"]))
-
-
-async def turn_page(callback: CallbackQuery, users: TelegramRepository, callback_data: AdminPage | None = None):
-    if not await authorized(callback, users):
-        await callback.answer(phrase("error.access"))
-        return
-    if callback_data is None:
-        await callback.answer()
-        return
-    result = await admin_page(users, callback_data)
-    if not result or not isinstance(callback.message, Message):
-        await callback.answer(phrase("error.page"))
-        return
-    page, markup = result
-    try:
-        await callback.message.edit_text(**page.kwargs(), reply_markup=markup, link_preview_options=NO_PREVIEW)
-    except TelegramBadRequest as exc:
-        if "message is not modified" not in exc.message.lower():
-            raise
-    await callback.answer()
+        if not await users.count_queries(user["user_id"]):
+            await message.answer(phrase("error.no_history"))
+            return
+        await start_list(message, dialog_manager, AdminList.queries, {"user_id": user["user_id"]})
 
 
 def clear_temp_files():
@@ -175,6 +159,4 @@ def router(settings: BotConfig):
     }
     for aliases in ADMIN_COMMANDS:
         result.message.register(handlers[aliases[0]], Command(*aliases, ignore_case=True), authorized)
-    result.callback_query.register(turn_page, AdminPage.filter())
-    result.callback_query.register(turn_page, F.data == "admin:noop")
     return result
