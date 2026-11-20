@@ -3,7 +3,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, Message
 
 from db.repositories.media import MediaRepository
-from telegram_bot import phrases
+from telegram_bot.lexicon import phrase
 from telegram_bot.handlers.callbacks_data import CardPage
 from telegram_bot.keyboards.user_keyboards import keyboard, movie_keyboard
 from telegram_bot.presenters import Section, pages, sections, web_url
@@ -11,7 +11,7 @@ from telegram_bot.presenters import Section, pages, sections, web_url
 
 async def send_card(message, card):
     if card is None:
-        await message.answer(phrases.MISSING, reply_markup=keyboard)
+        await message.answer(phrase("catalog.missing"), reply_markup=keyboard)
         return
     content = sections(card)
     poster = web_url(card.posterurl) or web_url(card.posterurlpreview)
@@ -36,20 +36,20 @@ async def show(callback: CallbackQuery, callback_data: CardPage, catalog: MediaR
     section, page = callback_data.section, callback_data.page
     message = callback.message
     if not isinstance(message, Message):
-        await callback.answer(phrases.STALE)
+        await callback.answer(phrase("catalog.stale"))
         return
     card = await catalog.card(callback_data.movie_id)
     if not card:
-        await callback.answer(phrases.MISSING)
+        await callback.answer(phrase("catalog.missing"))
         return
     content = sections(card)
     if section not in content:
-        await callback.answer("Этот раздел пуст.")
+        await callback.answer(phrase("catalog.empty_section"))
         return
     photo = bool(message.photo)
     chunks = pages(content[section], 1024 if photo else 4096)
     if not 0 <= page < len(chunks):
-        await callback.answer(phrases.STALE)
+        await callback.answer(phrase("catalog.stale"))
         return
     markup = movie_keyboard(card.media_id, content, section, page, len(chunks))
     edit = message.edit_caption if photo else message.edit_text

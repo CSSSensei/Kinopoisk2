@@ -1,11 +1,11 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
-from telegram_bot import phrases
+from telegram_bot.lexicon import phrase
 from telegram_bot.handlers.callbacks_data import CardPage
 from telegram_bot.presenters import LABELS, Section
 
 
-keyboard = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=phrases.FIND)], [KeyboardButton(text=phrases.RANDOM)]],
+keyboard = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=phrase("buttons.find"))], [KeyboardButton(text=phrase("buttons.random"))]],
                                resize_keyboard=True)
 
 
@@ -27,5 +27,5 @@ def movie_keyboard(media_id, available, section=Section.CARD, page=0, total=1):
                    for target, title in LABELS.items() if target in available]
         rows.extend(buttons[i:i+2] for i in range(0, len(buttons), 2))
     else:
-        rows.append([button("Назад", CardPage(movie_id=media_id, section=Section.CARD))])
+        rows.append([button(phrase("buttons.back"), CardPage(movie_id=media_id, section=Section.CARD))])
     return InlineKeyboardMarkup(inline_keyboard=rows)

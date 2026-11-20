@@ -3,6 +3,7 @@ from enum import StrEnum
 from aiogram.utils.formatting import Bold, Spoiler, Text, TextLink
 
 from db.repositories.media import MediaCard, MediaSummary
+from telegram_bot.lexicon import phrase
 from telegram_bot.presenters.links import trailer_links
 
 
@@ -17,9 +18,9 @@ class Section(StrEnum):
 
 
 LABELS = {
-    Section.DESCRIPTION: "Синопсис", Section.TRAILER: "Трейлер",
-    Section.SIMILAR: "Похожие фильмы", Section.RELATED: "Связанные фильмы",
-    Section.DETAILS: "Больше информации", Section.FACTS: "Факты",
+    Section.DESCRIPTION: phrase("catalog.description"), Section.TRAILER: phrase("catalog.trailer"),
+    Section.SIMILAR: phrase("catalog.similar"), Section.RELATED: phrase("catalog.related"),
+    Section.DETAILS: phrase("catalog.details"), Section.FACTS: phrase("catalog.facts"),
 }
 
 
@@ -33,8 +34,8 @@ def money(value):
 
 def summary(m: MediaSummary):
     heading = Text(TextLink(m.title, url=f"https://www.kinopoisk.ru/film/{m.media_id}/"), f" (/id_{m.media_id})")
-    return lines(heading, [("Рейтинг", m.rating), ("Год", m.release_year), ("Жанры", ", ".join(m.genres)),
-                           ("Страна", ", ".join(m.countries)), ("Режиссёр", ", ".join(m.directors))])
+    return lines(heading, [(phrase("catalog.rating"), m.rating), (phrase("catalog.year"), m.release_year), (phrase("catalog.genres"), ", ".join(m.genres)),
+                           (phrase("catalog.countries"), ", ".join(m.countries)), (phrase("catalog.director"), ", ".join(m.directors))])
 
 
 def lines(heading, fields):
@@ -45,10 +46,10 @@ def lines(heading, fields):
 def sections(m: MediaCard) -> dict[Section, Text]:
     card = summary(m)
     result = {Section.CARD: card, Section.DETAILS: lines(card, [
-        ("Количество оценок", m.votes), ("Тип", m.type), ("Длительность, мин", m.duration),
-        ("Возраст", m.age_rating), ("MPAA", m.rating_mpaa), ("Бюджет", money(m.budget_value)),
-        ("Мировые сборы", money(m.fees_world)), ("Место в топ-250", m.top250),
-        ("Актёры", ", ".join(m.actors))])}
+        (phrase("catalog.votes"), m.votes), (phrase("catalog.type"), m.type), (phrase("catalog.duration"), m.duration),
+        (phrase("catalog.age"), m.age_rating), (phrase("catalog.mpaa"), m.rating_mpaa), (phrase("catalog.budget"), money(m.budget_value)),
+        (phrase("catalog.fees"), money(m.fees_world)), (phrase("catalog.top"), m.top250),
+        (phrase("catalog.actors"), ", ".join(m.actors))])}
     description = "\n\n".join(dict.fromkeys(x for x in (m.description, m.short_description) if x))
     if description:
         result[Section.DESCRIPTION] = Text(description)

@@ -1,24 +1,26 @@
 from aiogram.utils.formatting import Bold, Italic, Text
 
+from telegram_bot.lexicon import phrase
+
 ADMIN_COMMANDS = {
-    ("users", "u"): "таблица со всеми пользователями",
-    ("commands", "cmds"): "список всех доступных команд",
-    ("ban",): "{user_id} — заблокировать пользователя по ID",
-    ("unban",): "{user_id} — разблокировать пользователя по ID",
-    ("promote",): "{user_id} — повысить уровень доступа",
-    ("demote",): "{user_id} — понизить уровень доступа",
-    ("query", "q"): "{N} — последние N запросов",
-    ("clear_temp",): "очистка временных файлов",
-    ("user_query", "uq", "qu"): "{user_id} — запросы пользователя по ID",
-    ("test",): "отладка и тестирование функций",
+    ("users", "u"): phrase("admin_commands.users"),
+    ("commands", "cmds"): phrase("admin_commands.commands"),
+    ("ban",): phrase("admin_commands.ban"),
+    ("unban",): phrase("admin_commands.unban"),
+    ("promote",): phrase("admin_commands.promote"),
+    ("demote",): phrase("admin_commands.demote"),
+    ("query", "q"): phrase("admin_commands.query"),
+    ("clear_temp",): phrase("admin_commands.clear_temp"),
+    ("user_query", "uq", "qu"): phrase("admin_commands.user_query"),
+    ("test",): phrase("admin_commands.test"),
 }
 
 USER_COMMANDS = {
-    ("start",): "запустить бота",
-    ("help",): "как пользоваться ботом",
-    ("about",): "о боте",
-    ("cancel",): "завершить поиск",
-    ("commands", "cmds"): "список всех команд (это сообщение)",
+    ("start",): phrase("user_commands.start"),
+    ("help",): phrase("user_commands.help"),
+    ("about",): phrase("user_commands.about"),
+    ("cancel",): phrase("user_commands.cancel"),
+    ("commands", "cmds"): phrase("user_commands.commands"),
 }
 ADMIN_NAMES = {name for aliases in ADMIN_COMMANDS for name in aliases}
 
@@ -32,9 +34,9 @@ def command_list(commands):
 
 
 def command_menu(admin):
-    title = Bold("Доступные команды")
+    title = Bold(phrase("menu.title"))
     public = command_list(USER_COMMANDS)
     if not admin:
         return Text(title, "\n\n", public)
-    return Text(title, "\n\n", Italic("Админские"), "\n", command_list(ADMIN_COMMANDS),
-                "\n\n", Italic("Пользовательские"), "\n", public)
+    return Text(title, "\n\n", Italic(phrase("menu.admin")), "\n", command_list(ADMIN_COMMANDS),
+                "\n\n", Italic(phrase("menu.user")), "\n", public)

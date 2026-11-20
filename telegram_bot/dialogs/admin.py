@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.formatting import BlockQuote, Bold, Code, Italic, Strikethrough, Text, TextLink
 
+from telegram_bot.lexicon import phrase, rich_phrase
 from telegram_bot.handlers.callbacks_data import AdminPage
 from telegram_bot.keyboards.user_keyboards import button
 from telegram_bot.presenters import pages
@@ -18,7 +19,7 @@ def mention(user):
 
 
 def user_list(rows, total):
-    lines = [Bold("Пользователи"), "\n", Italic(f"{total} всего"), "\n\n"]
+    lines = [Bold(phrase("admin.users")), "\n", Italic(phrase("admin.total").format(total=total)), "\n\n"]
     for row in rows:
         count = row["queries"]
         icon = next((icon for threshold, icon in ((100, "🤯"), (50, "🔥"), (10, "😮"), (5, "😎"))
@@ -36,9 +37,9 @@ def user_list(rows, total):
 
 
 def query_list(rows, user=None):
-    lines = [Bold("Запросы")]
+    lines = [Bold(phrase("admin.queries"))]
     if user is not None:
-        lines.extend(("\n", Italic("пользователя ", mention(user))))
+        lines.extend(("\n", Italic(rich_phrase("admin.user_history", user=mention(user)))))
     lines.append("\n\n")
     for row in rows:
         if user is None:
