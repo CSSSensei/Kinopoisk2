@@ -68,7 +68,6 @@ class KinopoiskEpisodesParser:
     def _parse_seasons_and_episodes(
         self, soup: BeautifulSoup
     ) -> tuple[List[SeasonInfo], List[EpisodeInfo]]:
-        """Parse seasons and episodes information from the page."""
         seasons = []
         episodes = []
 
@@ -123,7 +122,6 @@ class KinopoiskEpisodesParser:
     def _parse_episodes_from_table_rows(
         self, rows, season_number: int
     ) -> List[EpisodeInfo]:
-        """Parse episodes from table rows for a specific season."""
         episodes = []
 
         combined_text = ""
@@ -268,7 +266,6 @@ class KinopoiskEpisodesParser:
         return episode
 
     def _extract_episode_titles(self, text: str) -> Dict[str, Optional[str]]:
-        """Extract both Russian and English titles from text."""
         result = {"title": "", "original_title": None}
 
         if not text:
@@ -381,42 +378,3 @@ class KinopoiskEpisodesParser:
             time.sleep(2)
 
         return results
-
-
-def main():
-    parser = KinopoiskEpisodesParser()
-    movie_id = 893621  # Breaking Bad
-    data = parser.get_episodes_and_seasons(movie_id)
-
-    print(f"Found {len(data['seasons'])} seasons:")
-    for season in data["seasons"]:
-        print(
-            f"  - Season {season.season_number}"
-            + (f" ({season.release_year})" if season.release_year else "")
-        )
-
-    print(f"\nFound {len(data['episodes'])} episodes:")
-
-    episodes_by_season = {}
-    for episode in data["episodes"]:
-        if episode.season_number not in episodes_by_season:
-            episodes_by_season[episode.season_number] = []
-        episodes_by_season[episode.season_number].append(episode)
-
-    for season_num in sorted(episodes_by_season.keys()):
-        episodes = episodes_by_season[season_num]
-        print(f"  Season {season_num}:")
-        for episode in episodes:
-            date_str = (
-                episode.release_date.strftime("%Y-%m-%d")
-                if episode.release_date
-                else "N/A"
-            )
-            title_display = episode.title
-            if episode.original_title and episode.original_title != episode.title:
-                title_display += f" ({episode.original_title})"
-            print(f"    E{episode.episode_number}: {title_display} ({date_str})")
-
-
-if __name__ == "__main__":
-    main()

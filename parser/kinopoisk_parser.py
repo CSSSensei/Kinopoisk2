@@ -122,19 +122,3 @@ class KinopoiskRelationshipParser:
             time.sleep(1)
 
         return results
-
-
-def main():
-    parser = KinopoiskRelationshipParser()
-    movie_id = 687595
-    relationships = parser.get_relationships(movie_id)
-
-    print(f"Found {len(relationships)} relationships:")
-    for rel in relationships:
-        print(
-            f"  - {rel.movie_title} ({rel.related_movie_id}) - {rel.relationship_type}"
-        )
-
-
-if __name__ == "__main__":
-    main()
