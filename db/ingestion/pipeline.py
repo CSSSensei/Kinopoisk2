@@ -30,6 +30,7 @@ class WorkerOptions:
     episode_pages: int = 1000
     episode_requests: int = 20000
     min_votes: int | None = None
+    include_episodes: bool = False
 
     def __post_init__(self):
         for name in ('workers', 'batch_size', 'max_attempts', 'episode_pages'):
@@ -63,7 +64,8 @@ class MovieWorker:
             if not votes_above(movie, self.options.min_votes):
                 return MovieDetails(movie=movie)
         arguments = {'movie': movie} if movie is not None else {}
-        details = self.client.get_movie_details(movie_id, max_episode_pages=self.options.episode_pages,
+        details = self.client.get_movie_details(movie_id, include_episodes=self.options.include_episodes,
+                                                max_episode_pages=self.options.episode_pages,
                                                 max_episode_requests=self.options.episode_requests, **arguments)
         if details.id != movie_id:
             raise ValueError('API returned a different movie ID')

@@ -105,6 +105,8 @@ def enqueue_command(ids, priority, force):
 @click.option('--min-votes', type=click.IntRange(min=0),
               help='Insert new media only when Kinopoisk votes exceed this number; missing votes are skipped. '
                    'Existing media are still updated. Skipped IDs are deferred for --refresh-days.')
+@click.option('--episodes/--no-episodes', 'include_episodes', default=False,
+              help='Fetch and store seasons and episodes when enriching series.')
 @click.option('--episode-pages', type=click.IntRange(min=1), default=1000,
               help='Maximum online episode pages per series (20 episodes per page).')
 @click.option('--episode-requests', type=click.IntRange(min=0), default=20000,

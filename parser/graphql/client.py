@@ -83,7 +83,7 @@ class KinopoiskClient:
         for movie_id in movie_ids:
             yield self.get_movie(movie_id, kind=kind)
 
-    def get_movie_details(self, movie_id: int, *, max_episode_pages: int = 1000,
+    def get_movie_details(self, movie_id: int, *, include_episodes: bool = True, max_episode_pages: int = 1000,
                           max_episode_requests: int = 20000, movie: Optional[Movie] = None) -> MovieDetails:
         self._positive_integer(movie_id, 'movie_id')
         self._positive_integer(max_episode_pages, 'max_episode_pages')
@@ -95,7 +95,7 @@ class KinopoiskClient:
             raise ValueError('movie does not match movie_id')
         seasons = ()
         episodes = None
-        if movie.api_type == MovieType.TV_SERIES:
+        if include_episodes and movie.api_type == MovieType.TV_SERIES:
             metadata = self.get_episodes(movie_id)
             catalog = self.get_catalog_episodes(movie_id, max_pages=max_episode_pages) if movie.content_id else None
             if catalog is not None:

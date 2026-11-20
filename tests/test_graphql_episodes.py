@@ -31,6 +31,19 @@ class EpisodeCollectionTests(unittest.TestCase):
         ))
         return self.client.get_movie_details(1, movie=self.movie, max_episode_requests=budget)
 
+    def test_skipping_episodes_still_loads_other_sections(self):
+        self.client.get_episodes = Mock()
+        self.client.get_catalog_episodes = Mock()
+        details = self.client.get_movie_details(1, movie=self.movie, include_episodes=False)
+        self.assertEqual(details.seasons, ())
+        self.assertIsNone(details.episodes)
+        self.client.get_episodes.assert_not_called()
+        self.client.get_catalog_episodes.assert_not_called()
+        self.client.get_episode.assert_not_called()
+        self.client.get_relationships.assert_called_once_with(1)
+        self.client.get_facts.assert_called_once_with(self.movie)
+        self.client.get_similar.assert_called_once_with(self.movie)
+
     def test_merges_loaded_fields_and_fills_gaps_in_order(self):
         metadata = self.collection((self.episode(3, title="Old", description="Synopsis"),), 3)
         catalog = self.collection((self.episode(1), self.episode(3, title="New", description=None)), 3)
