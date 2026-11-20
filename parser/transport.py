@@ -20,7 +20,13 @@ class GraphQLTransport:
                 raise ValueError(f"{name} must be a positive finite number")
         self.timeout = timeout
         self.interval = 1 / rps
-        self.queries = json.loads(Path(__file__).with_name("queries.json").read_text(encoding="utf-8"))
+        query_dir = Path(__file__).with_name("queries")
+        self.queries = {
+            path.stem: path.read_text(encoding="utf-8")
+            for path in sorted(query_dir.glob("*.graphql"))
+        }
+        if not self.queries:
+            raise FileNotFoundError(f"No GraphQL documents in {query_dir}")
         self._lock = Lock()
         self._last_start = None
         self._blocked_until = 0
@@ -63,9 +69,11 @@ class GraphQLTransport:
                 return None
 
     def request(self, operation, **variables):
+        # Preserve the wire format of the captured frontend documents.
+        query = " ".join(line.strip() for line in self.queries[operation].splitlines() if line.strip()) + " "
         request = Request(
             f"{ENDPOINT}?operationName={operation}",
-            data=json.dumps({"operationName": operation, "query": self.queries[operation], "variables": variables}).encode("utf-8"),
+            data=json.dumps({"operationName": operation, "query": query, "variables": variables}).encode("utf-8"),
             headers={
                 "Accept": "application/json", "Content-Type": "application/json",
                 "Origin": "https://www.kinopoisk.ru", "Referer": "https://www.kinopoisk.ru/",
