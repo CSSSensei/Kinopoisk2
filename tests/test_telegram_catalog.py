@@ -1,12 +1,14 @@
 import os
+import subprocess
+import sys
 import unittest
 from pathlib import Path
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import psycopg2
 from psycopg2 import sql
-from aiogram import Bot
+from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.methods import SendPhoto
 from aiogram.types import Update
@@ -20,12 +22,35 @@ from db.ingestion.store import IngestionStore
 from parser.graphql.mappers import movie_from_api
 from parser.graphql.models import Collection, Fact, MovieDetails
 from pydantic import PositiveInt
-from telegram_bot.__main__ import build_dispatcher
+from telegram_bot.bootstrap import build_dispatcher, run_bot
 from telegram_bot.config import BotConfig
 from telegram_bot.container import build_container
 from telegram_bot.presenters import Section, pages, sections
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+class EntryPointTests(unittest.IsolatedAsyncioTestCase):
+    def test_direct_script_reaches_config_validation(self):
+        result = subprocess.run(
+            [sys.executable, "__main__.py"],
+            cwd=ROOT / "telegram_bot",
+            env={**os.environ, "PYTHONPATH": "", "BOT_TOKEN": ""},
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("ValueError: BOT_TOKEN is required", result.stderr)
+
+    async def test_bootstrap_reaches_polling_without_a_database(self):
+        settings = BotConfig("123456:unit-test", "postgresql://localhost:1/catalog")
+        with (
+            patch.object(BotConfig, "load", return_value=settings),
+            patch.object(Dispatcher, "start_polling", new_callable=AsyncMock) as polling,
+        ):
+            await run_bot()
+        polling.assert_awaited_once()
 
 
 class PaginationTests(unittest.TestCase):
