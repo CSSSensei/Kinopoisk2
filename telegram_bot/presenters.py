@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import IntEnum
+from enum import StrEnum
 from urllib.parse import urlsplit
 
 from aiogram.types import MessageEntity
@@ -8,14 +8,14 @@ from aiogram.utils.formatting import Bold, Spoiler, Text, TextLink
 from db.repositories.media import MediaCard, MediaSummary
 
 
-class Section(IntEnum):
-    CARD = -1
-    DESCRIPTION = 0
-    TRAILER = 1
-    SIMILAR = 2
-    RELATED = 3
-    DETAILS = 4
-    FACTS = 5
+class Section(StrEnum):
+    CARD = "card"
+    DESCRIPTION = "description"
+    TRAILER = "trailer"
+    SIMILAR = "similar"
+    RELATED = "related"
+    DETAILS = "details"
+    FACTS = "facts"
 
 
 LABELS = {
