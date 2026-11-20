@@ -1,10 +1,12 @@
+import os
 from functools import lru_cache
+from pathlib import Path
 
+from dotenv import dotenv_values
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker
 
-from config_data.config import load_config
 from db.models import Base
 
 
@@ -19,7 +21,10 @@ def create_postgres_engine(database_url):
 
 @lru_cache(maxsize=1)
 def get_engine():
-    return create_postgres_engine(load_config().database_url)
+    database_url = os.getenv('DATABASE_URL')
+    if database_url is None:
+        database_url = dotenv_values(Path(__file__).resolve().parents[1] / '.env').get('DATABASE_URL')
+    return create_postgres_engine(database_url)
 
 
 @lru_cache(maxsize=1)

@@ -3,9 +3,9 @@ from aiogram import Dispatcher
 
 from db.repositories.users import UserRepository
 from db.connection import close_database, initialize_database
-from config_data.bot import bot
-from config_data.middleware import setup_middlewares
-from handlers import user_handlers, admin_handlers, commands, callbacks, inline_handler
+from telegram_bot.bot import bot
+from telegram_bot.middleware import setup_middlewares
+from telegram_bot.handlers import user_handlers, admin_handlers, commands, callbacks, inline_handler
 
 
 async def main() -> None:

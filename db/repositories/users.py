@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import delete, select, update
 from sqlalchemy.dialects.postgresql import insert
 
-from config_data.models import Query, User
+from db.repositories.models import Query, User
 from db.connection import get_session_factory
 from db.models import QueryRecord, UserRecord
 

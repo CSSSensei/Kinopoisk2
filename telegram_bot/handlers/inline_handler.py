@@ -1,8 +1,8 @@
 from typing import List
 from aiogram import Router, types
 from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
-from config_data.models import Movie
-from filters.UCommands import get_link
+from db.repositories.models import Movie
+from telegram_bot.filters.UCommands import get_link
 from db.repositories.movies import MovieRepository
 
 db_instance = MovieRepository()

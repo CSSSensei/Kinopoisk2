@@ -3,10 +3,20 @@ from typing import Dict, List, Union
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from config_data.models import Movie
 from db.connection import get_session_factory
 from db.models import Film
-from filters.UCommands import cut_string
+from db.repositories.models import Movie
+
+
+def cut_string(s: str, n: int = 90, symbol: str = ','):
+    if len(s) <= n:
+        return s
+
+    last_comma_index = s.rfind(symbol, 0, n)
+
+    if last_comma_index == -1:
+        return s[:n]
+    return s[:last_comma_index]
 
 
 class MovieRepository:

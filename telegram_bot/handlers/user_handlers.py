@@ -4,14 +4,14 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from aiogram import Router, F
 
-from config_data.models import Movie
-from filters.UCommands import get_link
-from states.states import SearchMovie
-from keyboards import user_keyboards
+from db.repositories.models import Movie
+from telegram_bot.filters.UCommands import get_link
+from telegram_bot.states.states import SearchMovie
+from telegram_bot.keyboards import user_keyboards
 
 from db.repositories.movies import MovieRepository
 from db.repositories.users import UserRepository
-from lexicon.lexicon import LEXICON_RU
+from telegram_bot.lexicon.lexicon import LEXICON_RU
 
 db_instance = MovieRepository()
 

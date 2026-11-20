@@ -5,11 +5,11 @@ from aiogram.fsm.state import default_state
 from aiogram.types import Message
 
 
-from filters.UCommands import get_link
-from filters.filters import CheckId
-from keyboards import user_keyboards
+from telegram_bot.filters.UCommands import get_link
+from telegram_bot.filters.filters import CheckId
+from telegram_bot.keyboards import user_keyboards
 from db.repositories.movies import MovieRepository
-from lexicon.lexicon import LEXICON_RU
+from telegram_bot.lexicon.lexicon import LEXICON_RU
 
 router = Router()
 db_instance = MovieRepository()

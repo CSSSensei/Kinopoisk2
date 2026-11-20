@@ -1,12 +1,12 @@
 from typing import Union
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-import config_data.models
+from db.repositories.models import Query
 from db.repositories.users import UserRepository
-from config_data.config import config
-from config_data.bot import bot
-from filters import format_string
-from handlers.callbacks_data import CutMessageCallBack
+from telegram_bot.config import config
+from telegram_bot.bot import bot
+from telegram_bot.filters import format_string
+from telegram_bot.handlers.callbacks_data import CutMessageCallBack
 
 users_db = UserRepository()
 
@@ -24,7 +24,7 @@ async def get_users_by_page(user_id: int, page: int = 1, message_id: Union[int, 
         line = (f'<b>{"@" + user.username if user.username else "🐸"}</b> | <i>{user.user_id}</i> |' +
                 (' 👑 |' if user.is_admin else '') + f' {emoji} {query_amount} [{user.registration_date.strftime("%d.%m.%Y")}]\n')
         txt += line
-    txt = format_string.split_text(txt, config.tg_bot.message_max_symbols)
+    txt = format_string.split_text(txt, config.message_max_symbols)
     if not message_id:
         await bot.send_message(chat_id=user_id, text=txt[page - 1], reply_markup=page_keyboard(action=1, page=page, max_page=len(txt)))
     else:
@@ -39,14 +39,14 @@ async def user_query_by_page(user_id: int, user_id_to_find: Union[int, None], pa
         return
     username = users_db.get_user(user_id_to_find).username
     txt = f'История запросов <b>{"@" + username if username else user_id_to_find}</b>\n\n'
-    query: config_data.models.Query
+    query: Query
     for query in queries:
         query_time = query.query_date.strftime("%d.%m.%Y %H:%M:%S") if query.query_date else '❓'
         user_query = format_string.format_string(query.query_text).replace("\n", "\t")
         line = f'<blockquote>{query_time}</blockquote> <i>{user_query}</i>\n\n'
         if len(line) + len(txt) < 4096:
             txt += line
-    txt = format_string.split_text(txt, config.tg_bot.message_max_symbols)
+    txt = format_string.split_text(txt, config.message_max_symbols)
     if not message_id:
         await bot.send_message(chat_id=user_id, text=txt[page - 1].replace('\t', '\n'),
                                reply_markup=page_keyboard(action=2, page=page, max_page=len(txt), user_id=user_id_to_find))

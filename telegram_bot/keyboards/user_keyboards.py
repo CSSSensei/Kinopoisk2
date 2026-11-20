@@ -1,6 +1,6 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
-from config_data.models import Movie
-from handlers.callbacks_data import MovieCallBack, FactsCallBack
+from db.repositories.models import Movie
+from telegram_bot.handlers.callbacks_data import MovieCallBack, FactsCallBack
 
 find_movie: KeyboardButton = KeyboardButton(text='Найти фильм')
 random_movie: KeyboardButton = KeyboardButton(text='Рандомный фильм')

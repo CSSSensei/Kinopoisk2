@@ -3,11 +3,11 @@ from typing import Union, Tuple
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from db.repositories.movies import MovieRepository
-from config_data.config import config
+from telegram_bot.config import config
 
-from keyboards import user_keyboards, main_keyboard
-from filters.UCommands import get_id, cut_back, split_text
-from handlers.callbacks_data import FactsCallBack, MovieCallBack, CutMessageCallBack
+from telegram_bot.keyboards import user_keyboards, main_keyboard
+from telegram_bot.filters.UCommands import get_id, cut_back, split_text
+from telegram_bot.handlers.callbacks_data import FactsCallBack, MovieCallBack, CutMessageCallBack
 
 router = Router()
 
@@ -168,5 +168,5 @@ async def process_button_1_press(callback: CallbackQuery):
 
 
 def _get_facts_by_page(movie_id: int, page: int = 0) -> Tuple[str, int]:
-    facts = split_text(db_instance.get_facts(movie_id), config.tg_bot.message_max_symbols)
+    facts = split_text(db_instance.get_facts(movie_id), config.message_max_symbols)
     return facts[page], len(facts)

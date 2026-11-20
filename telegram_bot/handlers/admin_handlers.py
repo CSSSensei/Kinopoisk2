@@ -3,8 +3,8 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from db.repositories.users import UserRepository
-from filters import filters, format_string
-from keyboards import main_keyboard
+from telegram_bot.filters import filters, format_string
+from telegram_bot.keyboards import main_keyboard
 
 router = Router()
 db = UserRepository()

@@ -3,7 +3,7 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram.types import Message, TelegramObject
 
 from db.repositories.users import UserRepository
-from config_data.models import User, Query
+from db.repositories.models import User, Query
 
 
 class UserRegistrationMiddleware(BaseMiddleware):
