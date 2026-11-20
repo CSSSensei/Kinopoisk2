@@ -40,7 +40,7 @@ class EpisodeCollectionTests(unittest.TestCase):
         self.client.get_episodes.assert_not_called()
         self.client.get_catalog_episodes.assert_not_called()
         self.client.get_episode.assert_not_called()
-        self.client.get_relationships.assert_called_once_with(1)
+        self.client.get_relationships.assert_called_once_with(1, related_count=None, sequels_prequels_count=None)
         self.client.get_facts.assert_called_once_with(self.movie)
         self.client.get_similar.assert_called_once_with(self.movie)
 

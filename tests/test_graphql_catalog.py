@@ -36,6 +36,28 @@ class GraphQLCatalogTests(unittest.TestCase):
         client._request.assert_called_with(Operation.FILM_FACTS, filmId=435, triviasType="FACT",
                                            triviasLimit=30, triviasOffset=1)
 
+    def test_relationship_requests_follow_known_empty_counts(self):
+        both = [Operation.SEQUELS_PREQUELS, Operation.RELATED_MOVIES]
+        cases = [
+            ({"relatedMovies": {"total": 0}}, []),
+            ({"sequelsPrequels": {"total": 0}}, [Operation.RELATED_MOVIES]),
+            ({"relatedMovies": {"total": 5}, "sequelsPrequels": {"total": 0}}, [Operation.RELATED_MOVIES]),
+            ({"relatedMovies": {"total": 0}, "sequelsPrequels": {"total": 1}}, both),
+            ({"relatedMovies": {"total": 2}, "sequelsPrequels": {"total": 2}}, both),
+            ({"relatedMovies": {"total": False}, "sequelsPrequels": None}, both),
+            ({}, both),
+        ]
+        for fields, expected in cases:
+            for kind in ("Film", "TvSeries"):
+                with self.subTest(fields=fields, kind=kind):
+                    movie = self.movie(__typename=kind, factsCount={"total": 0}, similarMoviesCount={"total": 0}, **fields)
+                    client = KinopoiskClient()
+                    empty = {"total": 0, "items": []}
+                    client._request = Mock(return_value={"movie": {"id": 435, "relatedMovies": empty, "sequelsPrequels": empty}})
+                    details = client.get_movie_details(movie.id, movie=movie, include_episodes=False)
+                    self.assertEqual([c.args[0] for c in client._request.call_args_list], expected)
+                    self.assertEqual(details.relationships.items, ())
+
     def test_truncated_recommendations_and_broken_fact_page(self):
         client = KinopoiskClient()
         client._request = Mock(return_value={"tvSeries": {"id": 1, "userRecommendations": {

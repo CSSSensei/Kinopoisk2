@@ -78,6 +78,8 @@ class Movie(PatchModel):
     trailer_url: Optional[str] = None
     facts_count: Optional[NonNegativeInt] = None
     similar_count: Optional[NonNegativeInt] = None
+    related_count: Optional[NonNegativeInt] = None
+    sequels_prequels_count: Optional[NonNegativeInt] = None
     age_rating: Optional[NonNegativeInt] = None
     rating_mpaa: Optional[str] = None
     genres: tuple[NamedEntity, ...] = ()

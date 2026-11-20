@@ -220,6 +220,11 @@ def movie_from_api(raw):
     for target, source in (("facts_count", "factsCount"), ("similar_count", "similarMoviesCount")):
         if source in raw and raw[source] is not None:
             values[target] = _optional_int(_object(raw[source], source).get("total"), source + ".total")
+    for target, source in (("related_count", "relatedMovies"), ("sequels_prequels_count", "sequelsPrequels")):
+        collection = raw.get(source)
+        count = collection.get("total") if isinstance(collection, dict) else None
+        if type(count) is int and count >= 0:
+            values[target] = count
     return Movie(**values)
 
 

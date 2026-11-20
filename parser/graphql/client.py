@@ -103,7 +103,8 @@ class KinopoiskClient:
             episodes = collect_episodes(movie, metadata, catalog.episodes if catalog else None,
                                         max_episode_requests, self.get_episode)
         return MovieDetails(movie=movie, seasons=seasons, episodes=episodes,
-                            relationships=self.get_relationships(movie_id),
+                            relationships=self.get_relationships(movie_id, related_count=movie.related_count,
+                                                                 sequels_prequels_count=movie.sequels_prequels_count),
                             facts=self.get_facts(movie), similar=self.get_similar(movie))
 
     def _catalog_section(self, movie, film_operation, series_operation, **variables):
@@ -275,14 +276,21 @@ class KinopoiskClient:
         seasons = self._catalog_seasons(page)
         return collect_catalog_pages(movie_id, seasons, total, season_count, max_pages, self._season_page)
 
-    def get_relationships(self, movie_id: int) -> Collection[Relationship]:
+    def get_relationships(self, movie_id: int, *, related_count: Optional[int] = None,
+                          sequels_prequels_count: Optional[int] = None) -> Collection[Relationship]:
+        self._positive_integer(movie_id, "movie_id")
         variables = {"movieId": movie_id, "relatedMoviesLimit": 20, "withUserData": False}
-        sequels = self._query(Operation.SEQUELS_PREQUELS, movie_id, **variables)
-        others = self._query(Operation.RELATED_MOVIES, movie_id, **variables)
+        operations = []
+        no_relationships = related_count == 0 and sequels_prequels_count in (None, 0)
+        if not no_relationships:
+            if sequels_prequels_count != 0:
+                operations.append((Operation.SEQUELS_PREQUELS, "sequelsPrequels"))
+            operations.append((Operation.RELATED_MOVIES, "relatedMovies"))
         limitations = ["MovieRelatedMovies does not include relationship types or directions."]
         items = []
         total = 0
-        for root, field in ((sequels, "sequelsPrequels"), (others, "relatedMovies")):
+        for operation, field in operations:
+            root = self._query(operation, movie_id, **variables)
             records = self._items(root, field)
             count = self._count(root, field)
             if len(records) > count:
