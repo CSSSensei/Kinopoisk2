@@ -1,11 +1,9 @@
-from dataclasses import dataclass
 from enum import StrEnum
-from urllib.parse import urlsplit
 
-from aiogram.types import MessageEntity
 from aiogram.utils.formatting import Bold, Spoiler, Text, TextLink
 
 from db.repositories.media import MediaCard, MediaSummary
+from telegram_bot.presenters.links import trailer_links
 
 
 class Section(StrEnum):
@@ -23,27 +21,6 @@ LABELS = {
     Section.SIMILAR: "Похожие фильмы", Section.RELATED: "Связанные фильмы",
     Section.DETAILS: "Больше информации", Section.FACTS: "Факты",
 }
-
-
-def web_url(value) -> str | None:
-    if isinstance(value, str):
-        try:
-            url = urlsplit(value)
-            if url.scheme in {"http", "https"} and url.hostname:
-                return value
-        except ValueError:
-            pass
-    return None
-
-
-def trailer_links(value):
-    if isinstance(value, list):
-        for entry in value:
-            yield from trailer_links(entry)
-    elif isinstance(value, dict):
-        yield from trailer_links(value.get("url") or value.get("trailers"))
-    elif url := web_url(value):
-        yield url
 
 
 def money(value):
@@ -85,42 +62,4 @@ def sections(m: MediaCard) -> dict[Section, Text]:
         entries = [f"{r['title']} (/id_{r['id']})" + (f" — {r['kind']}" if "kind" in r else "") for r in related]
         if entries:
             result[section] = Text(Bold(LABELS[section]), "\n", "\n".join(entries))
-    return result
-
-
-@dataclass
-class Page:
-    text: str
-    entities: list[MessageEntity]
-
-    def kwargs(self, caption=False):
-        if caption:
-            return dict(caption=self.text, caption_entities=self.entities, parse_mode=None)
-        return dict(text=self.text, entities=self.entities, parse_mode=None)
-
-
-def pages(content: Text, limit: int) -> list[Page]:
-    body, entities = content.render()
-    result = []
-    start = offset = 0
-    while start < len(body):
-        end = min(start + limit, len(body))
-        # Telegram entity offsets and lengths count UTF-16 code units.
-        size = len(body[start:end].encode("utf-16-le")) // 2
-        while size > limit:
-            end -= 1
-            size -= 2 if ord(body[end]) > 0xffff else 1
-        if end < len(body):
-            boundary = body.rfind("\n", start, end)
-            if boundary > start:
-                end = boundary + 1
-        chunk = body[start:end]
-        next_offset = offset + len(chunk.encode("utf-16-le")) // 2
-        clipped = []
-        for ent in entities:
-            left, right = max(offset, ent.offset), min(next_offset, ent.offset + ent.length)
-            if right > left:
-                clipped.append(ent.model_copy(update={"offset": left - offset, "length": right - left}))
-        result.append(Page(chunk, clipped))
-        start, offset = end, next_offset
     return result
