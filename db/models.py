@@ -15,6 +15,7 @@ class UserRecord(Base):
     first_name = Column(Text)
     last_name = Column(Text)
     is_admin = Column(Boolean, nullable=False, server_default='false')
+    is_banned = Column(Boolean, nullable=False, server_default='false')
     registration_date = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 

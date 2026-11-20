@@ -17,7 +17,7 @@ async def authorized(event, users: TelegramRepository):
 
 
 async def grant(message: Message, users: TelegramRepository):
-    await users.grant_admin(message.from_user.id)
+    await users.set_admin(message.from_user.id, True)
     await message.answer("Теперь ты админ")
 
 

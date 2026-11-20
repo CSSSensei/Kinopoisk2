@@ -150,6 +150,7 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
                     trailer=to_json('https://example.com/video'::text) WHERE media_id=1;
             """)
             cur.execute((ROOT / "db/migrations/V008__project_namespaces.sql").read_text())
+            cur.execute((ROOT / "db/migrations/V009__telegram_user_bans.sql").read_text())
 
     async def asyncSetUp(self):
         self.container = build_container(self.settings)
