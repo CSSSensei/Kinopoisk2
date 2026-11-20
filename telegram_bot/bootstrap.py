@@ -19,7 +19,8 @@ def build_dispatcher(
     settings: BotConfig, catalog: MediaRepository, users: TelegramRepository
 ) -> Dispatcher:
     dispatcher = Dispatcher(settings=settings, catalog=catalog, users=users)
-    dispatcher.message.outer_middleware(RegisterUser())
+    for observer in (dispatcher.message, dispatcher.callback_query, dispatcher.inline_query):
+        observer.outer_middleware(RegisterUser())
     dispatcher.include_routers(
         admin_handlers.router(settings),
         commands.router(),

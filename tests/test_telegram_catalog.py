@@ -3,6 +3,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
@@ -221,18 +222,88 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         answer = await self.feed("inline_query", {"id": "i", "from": self.actor, "query": "Alias", "offset": ""})
         self.assertEqual(answer.results[0].id, "1")
 
-    async def test_admin(self):
-        stranger = {**self.actor, "id": 4567}
-        denied, = await self.callback("cut:1:0:1", user=stranger)
+    async def test_admin_access_and_moderation(self):
+        admin_id = self.actor["id"]
+        visitor = {**self.actor, "id": 4567, "first_name": "<Посетитель>"}
+        public = await self.feed("message", self.message("/cmds", visitor))
+        self.assertNotIn("/promote", public.text)
+        denied, = await self.callback("admin:users:0:1:0", user=visitor)
         self.assertIn("администратора", denied.text)
+
+        menu = await self.feed("message", self.message(self.settings.admin_password))
+        for name in ("users", "commands", "ban", "unban", "promote", "demote", "query", "clear_temp", "user_query", "test"):
+            self.assertIn("/" + name, menu.text)
+        self.assertIn("bold", [entity.type for entity in menu.entities])
+        self.assertTrue(await self.users.is_admin(admin_id))
+        await self.feed("message", self.message("/promote 4567", visitor))
+        self.assertFalse(await self.users.is_admin(4567))
+        await self.feed("message", self.message("/promote 4567"))
+        self.assertTrue(await self.users.is_admin(4567))
+        await self.feed("message", self.message("/demote 4567"))
+        self.assertFalse(await self.users.is_admin(4567))
+
+        for cmd, error in (("/ban", "не передал"), ("/ban abc", "не число"), ("/ban 988888", "не существует"),
+                           (f"/ban {admin_id}", "самого себя")):
+            self.assertIn(error, (await self.feed("message", self.message(cmd))).text)
+        result = await self.feed("message", self.message("/ban 4567"))
+        self.assertIn("<Посетитель>", result.text)
+        self.assertEqual(result.entities[0].url, "tg://user?id=4567")
+        self.bot.session.make_request.reset_mock()
+        update = Update.model_validate({"update_id": 2, "message": self.message(self.settings.admin_password, visitor)})
+        await self.dp.feed_update(self.bot, update)
+        self.bot.session.make_request.assert_not_awaited()
+        self.assertFalse(await self.users.is_admin(4567))
+        ack, = await self.callback("card:1:facts:0", user=visitor)
+        self.assertEqual(ack.__api_method__, "answerCallbackQuery")
+        inline = await self.feed("inline_query", {"id": "i", "from": visitor, "query": "Alias", "offset": ""})
+        self.assertEqual(inline.results, [])
+        await self.feed("message", self.message("/unban 4567"))
+        self.assertIn("/id_1", (await self.feed("message", self.message("/id_1", visitor))).text)
+
+    async def test_admin_history_and_pagination(self):
         await self.feed("message", self.message(self.settings.admin_password))
-        self.assertTrue(await self.users.is_admin(self.actor["id"]))
-        await self.feed("message", self.message("запомнить это"))
-        await self.feed("message", self.message("/get_users"))
-        history = await self.feed("message", self.message("/user_query 1234"))
-        self.assertIn("запомнить это", history.text)
+        visitor = {**self.actor, "id": 9001}
+        for i in range(8):
+            await self.feed("message", self.message(f"<запрос {i}>", visitor))
+        for alias in ("uq", "qu", "user_query"):
+            history = await self.feed("message", self.message(f"/{alias} 9001"))
+            self.assertIn("<запрос 7>", history.text)
+            self.assertNotIn("<запрос 0>", history.text)
+            self.assertIn("blockquote", [ent.type for ent in history.entities])
+        nav = history.reply_markup.inline_keyboard[0]
+        self.assertEqual([btn.text for btn in nav], [" ", " ", "1", "❯", "2 »"])
+        edit, ack = await self.callback(nav[-1].callback_data)
+        self.assertIn("<запрос 0>", edit.text)
+        self.assertEqual(edit.reply_markup.inline_keyboard[0][0].text, "« 1")
+        for i in range(16):
+            await self.feed("message", self.message("/help", {**visitor, "id": 9100 + i}))
+        users = await self.feed("message", self.message("/U"))
+        self.assertIn("Пользователи", users.text)
+        self.assertIn("🐥", users.text)
+        edit, _ = await self.callback(users.reply_markup.inline_keyboard[0][3].callback_data)
+        self.assertEqual(edit.reply_markup.inline_keyboard[0][2].text, "2")
+        recent = await self.feed("message", self.message("/q 2"))
+        self.assertIn("<запрос 7>", recent.text)
+        self.assertNotIn("<запрос 5>", recent.text)
         queries = await self.users.queries(0, 100, self.actor["id"])
         self.assertNotIn(self.settings.admin_password, [r["query_text"] for r in queries])
+
+    async def test_clear_temp_is_scoped_to_bot_files(self):
+        await self.feed("message", self.message(self.settings.admin_password))
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            outside = root / "outside"
+            outside.write_text("keep")
+            temp_dir = root / "bot" / "temp"
+            nested = temp_dir / "nested"
+            nested.mkdir(parents=True)
+            (nested / "file").write_text("remove")
+            (temp_dir / "link").symlink_to(root, target_is_directory=True)
+            with patch("telegram_bot.handlers.admin_handlers.TEMP_DIR", temp_dir):
+                result = await self.feed("message", self.message("/clear_temp"))
+            self.assertEqual(result.text, "Временные файлы очищены")
+            self.assertEqual(list(temp_dir.iterdir()), [])
+            self.assertTrue(outside.exists())
 
     async def test_graphql_refresh_and_photo_fallback(self):
         engine = create_postgres_engine(self.settings.database_url)

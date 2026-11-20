@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from telegram_bot import phrases
+from telegram_bot.handlers.admin_commands import command_menu
 from telegram_bot.keyboards.user_keyboards import keyboard
 
 
@@ -13,6 +14,10 @@ async def start(message: Message):
 
 async def help_command(message: Message):
     await message.answer(phrases.HELP, reply_markup=keyboard)
+
+
+async def commands(message: Message):
+    await message.answer(**command_menu(admin=False).as_kwargs())
 
 
 async def about(message: Message):
@@ -30,5 +35,6 @@ def router():
     result.message.register(start, CommandStart())
     result.message.register(help_command, Command("help"))
     result.message.register(about, Command("about"))
+    result.message.register(commands, Command("commands", "cmds", ignore_case=True))
     result.message.register(cancel, Command("cancel"))
     return result
