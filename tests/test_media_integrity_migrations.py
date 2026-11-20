@@ -317,12 +317,13 @@ class MediaIntegrityMigrationTests(unittest.TestCase):
         for table, column, *_ in expected[0]:
             if table != 'unrelated_table':
                 fields.setdefault(table, []).append(column)
-        dbml = (ROOT / 'diagrams/kinopoisk-physical.dbml').read_text()
+        diagrams = ROOT / 'docs' / 'diagrams'
+        dbml = (diagrams / 'kinopoisk-physical.dbml').read_text()
         dbml_fields = {}
         for table, body in re.findall(r'Table (\w+) \{(.*?)\n\}', dbml, re.S):
             dbml_fields[table] = re.findall(r'^  (\w+) [^\n]+\[', body.split('  indexes {')[0].split('  checks {')[0], re.M)
         self.assertEqual(dbml_fields, fields)
-        diagram = ET.parse(ROOT / 'diagrams/kinopoisk.drawio')
+        diagram = ET.parse(diagrams / 'kinopoisk.drawio')
         for page, prefix in [('logical-crows-foot', 'logical'), ('physical-postgresql', 'physical')]:
             model = diagram.find(f"diagram[@id='{page}']")
             if prefix == 'logical':
@@ -333,7 +334,7 @@ class MediaIntegrityMigrationTests(unittest.TestCase):
                 names = [cell.get('value') for cell in model.iter('mxCell')
                          if cell.get('parent') == f'{prefix}-{table}' and cell.get('id', '').endswith('-name')]
                 self.assertEqual(names, columns, (page, table))
-        target_sql = (ROOT / 'diagrams/kinopoisk-physical.sql').read_text()
+        target_sql = (diagrams / 'kinopoisk-physical.sql').read_text()
         self.assertEqual(target_sql, (ROOT / 'db/sql/create_tables.sql').read_text())
         self.execute('DROP SCHEMA public CASCADE; CREATE SCHEMA public')
         self.execute(target_sql)
