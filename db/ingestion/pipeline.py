@@ -10,9 +10,9 @@ from psycopg2 import DataError, IntegrityError
 from pydantic import ValidationError
 
 from db.ingestion.store import IngestionStore, media_patch, votes_above
-from parser.api import KinopoiskClient
-from parser.errors import HTTPAPIError, ResponseValidationError
-from parser.models import MovieDetails
+from parser.graphql.client import KinopoiskClient
+from parser.graphql.errors import HTTPAPIError, ResponseValidationError
+from parser.graphql.models import MovieDetails
 
 
 logger = logging.getLogger(__name__)

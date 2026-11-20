@@ -10,7 +10,7 @@ from psycopg2.extras import Json, execute_values
 from db.ingestion.bulk import upsert_rows
 from db.ingestion.details import DetailChanges, save_relationships, save_series
 from db.ingestion.ratings import normalize_age_rating, normalize_mpaa_rating
-from parser.models import Movie, MovieDetails
+from parser.graphql.models import Movie, MovieDetails
 
 
 _ROLE_NAMES = {

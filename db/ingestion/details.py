@@ -5,7 +5,7 @@ from psycopg2 import sql
 from psycopg2.extras import execute_values
 
 from db.ingestion.bulk import upsert_rows
-from parser.models import MovieDetails
+from parser.graphql.models import MovieDetails
 
 
 logger = logging.getLogger(__name__)

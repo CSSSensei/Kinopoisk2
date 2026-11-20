@@ -4,7 +4,7 @@ from typing import List, Dict, Set
 from psycopg2.extras import execute_batch
 
 
-from parser.kinopoisk_parser import KinopoiskRelationshipParser, Relationship
+from parser.html.relationships import KinopoiskRelationshipParser, Relationship
 from db.connection import get_engine
 from db.query_loader import load_query
 

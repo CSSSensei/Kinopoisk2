@@ -8,7 +8,7 @@ import psycopg2
 from db.connection import close_database, get_engine
 from db.ingestion.pipeline import MovieWorker, WorkerOptions
 from db.ingestion.store import IngestionStore
-from parser.api import KinopoiskClient
+from parser.graphql.client import KinopoiskClient
 from parser.sitemaps import SitemapClient
 
 
