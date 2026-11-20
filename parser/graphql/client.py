@@ -1,28 +1,15 @@
-import logging
-from dataclasses import dataclass
+from pprint import pprint
 from typing import Iterable, Iterator, Optional
 
 from bs4 import BeautifulSoup
 from pydantic import PositiveInt
 
-from .models import Collection, Episode, Fact, Movie, MovieDetails, Relationship, Season, SeriesEpisodes
+from .episodes import ONLINE_CATALOG_LIMITATION, CatalogSeason, collect_catalog_pages, collect_episodes
+from .models import Collection, Episode, Fact, Movie, MovieDetails, Relationship, SeriesEpisodes
 from .errors import EpisodeNotFoundError, GraphQLAPIError, KinopoiskAPIError, is_not_found_at
 from .mappers import _integer, _object, _text, episode_from_api, movie_from_api
 from .operations import BaseInfoRequest, CollectionScope, MovieKind, MovieType, Operation
 from .transport import GraphQLTransport
-
-from pprint import pprint
-
-
-logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class _CatalogSeason:
-    id: int
-    number: int
-    content_id: str
-    episode_count: int
 
 
 class KinopoiskClient:
@@ -111,34 +98,10 @@ class KinopoiskClient:
         if movie.api_type == MovieType.TV_SERIES:
             metadata = self.get_episodes(movie_id)
             catalog = self.get_catalog_episodes(movie_id, max_pages=max_episode_pages) if movie.content_id else None
-            merged = {(item.season_number, item.episode_number): item for item in metadata.items}
             if catalog is not None:
                 seasons = catalog.seasons
-                for item in catalog.episodes.items:
-                    slot = (item.season_number, item.episode_number)
-                    old = merged.get(slot)
-                    if old is not None and old.id != item.id:
-                        raise KinopoiskAPIError('Episode identity changed between metadata and catalog')
-                    values = old.model_dump(exclude_unset=True) if old else {}
-                    for field, value in item.model_dump(exclude_unset=True).items():
-                        if value is not None or field not in values:
-                            values[field] = value
-                    merged[slot] = Episode(**values)
-            total = metadata.total
-            if catalog is not None and catalog.episodes.total != total:
-                raise KinopoiskAPIError('Episode count changed between metadata and catalog')
-            if len(merged) > total:
-                raise KinopoiskAPIError('Combined episodes exceed metadata total')
-            requests = self._complete_episodes(movie, merged, total, max_episode_requests)
-            complete = len(merged) == total
-            limitations = () if complete else tuple(dict.fromkeys(
-                metadata.limitations + (catalog.episodes.limitations if catalog else ('No online catalog contentId.',))
-            ))
-            if not complete and requests >= max_episode_requests:
-                limitations += (f'Stopped at individual episode request budget: {max_episode_requests}.',)
-            episodes = Collection[Episode](items=tuple(merged[slot] for slot in sorted(merged)),
-                                           total=total, complete=complete, scope=CollectionScope.SERIES_EPISODES,
-                                           limitations=limitations)
+            episodes = collect_episodes(movie, metadata, catalog.episodes if catalog else None,
+                                        max_episode_requests, self.get_episode)
         return MovieDetails(movie=movie, seasons=seasons, episodes=episodes,
                             relationships=self.get_relationships(movie_id),
                             facts=self.get_facts(movie), similar=self.get_similar(movie))
@@ -199,45 +162,6 @@ class KinopoiskClient:
                                        scope="userRecommendations",
                                        limitations=() if len(ids) == total else ("Result limited by the API.",))
 
-    def _complete_episodes(self, movie: Movie, records: dict[tuple[int, int], Episode],
-                           total: int, max_requests: int) -> int:
-        if len(records) == total or max_requests == 0:
-            return 0
-        known_max: dict[int, int] = {}
-        for season, number in records:
-            known_max[season] = max(known_max.get(season, 0), number)
-        last_season = max(movie.seasons_count or 0, max(known_max, default=1))
-        first_season = 0 if 0 in known_max else 1
-        seen = {item.id for item in records.values()}
-        requests = 0
-        logger.info('[EPISODE FETCH] media_id=%s fetched=%s total=%s filling missing episodes', movie.id, len(records), total)
-        for season in range(first_season, last_season + 1):
-            number = 1
-            while len(records) < total and requests < max_requests:
-                slot = (season, number)
-                if slot in records:
-                    number += 1
-                    continue
-                requests += 1
-                try:
-                    item = self.get_episode(movie.id, season, number)
-                except EpisodeNotFoundError:
-                    # A gap before a known episode does not mark the end of a season.
-                    if number >= known_max.get(season, 0):
-                        break
-                else:
-                    if item.id in seen:
-                        raise KinopoiskAPIError('Episode ID repeated across season positions')
-                    seen.add(item.id)
-                    records[slot] = item
-                    if requests % 50 == 0 or len(records) == total:
-                        logger.info('[EPISODE FETCH] media_id=%s fetched=%s total=%s requests=%s',
-                                    movie.id, len(records), total, requests)
-                number += 1
-            if len(records) == total or requests >= max_requests:
-                break
-        return requests
-
     def iter_movie_batches(self, movie_ids: Iterable[int], *, batch_size: int = 100,
                           kind: Optional[str] = None) -> Iterator[tuple[Movie, ...]]:
         self._positive_integer(batch_size, "batch_size")
@@ -285,7 +209,7 @@ class KinopoiskClient:
             total=total, complete=complete, scope=CollectionScope.METADATA_SNAPSHOT, limitations=limitations,
         )
 
-    def _catalog_seasons(self, page: dict) -> tuple[_CatalogSeason, ...]:
+    def _catalog_seasons(self, page: dict) -> tuple[CatalogSeason, ...]:
         seasons = []
         content_ids, numbers = set(), set()
         for raw in self._items(page, "seasons"):
@@ -298,10 +222,10 @@ class KinopoiskClient:
                 raise KinopoiskAPIError("Duplicate season number")
             content_ids.add(content_id)
             numbers.add(number)
-            seasons.append(_CatalogSeason(season_id, number, content_id, self._count(raw, "episodes")))
+            seasons.append(CatalogSeason(season_id, number, content_id, self._count(raw, "episodes")))
         return tuple(seasons)
 
-    def _season_page(self, movie_id: int, season: _CatalogSeason, offset: int) -> tuple[Episode, ...]:
+    def _season_page(self, movie_id: int, season: CatalogSeason, offset: int) -> tuple[Episode, ...]:
         root = self._request(
             Operation.SEASON_PAGE, contentId=season.content_id,
             limit=20, offset=offset, withPreOrder=False, withUserData=False,
@@ -329,16 +253,12 @@ class KinopoiskClient:
         info = self._series_info(movie_id)
         total = self._count(info, "episodes")
         season_count = self._count(info, "seasonsAll")
-        limitations = [
-            "The catalog selects ONLINE_WITH_ANNOUNCEMENTS and does not include releaseDate. "
-            "plannedAvailabilityDate is not an episode premiere date."
-        ]
         content_id = info.get("contentId")
         if content_id is None:
-            limitations.append("The series has no online catalog contentId.")
             collection = Collection[Episode](
                 items=(), total=total, complete=False,
-                scope=CollectionScope.ONLINE_WITH_ANNOUNCEMENTS, limitations=tuple(limitations),
+                scope=CollectionScope.ONLINE_WITH_ANNOUNCEMENTS,
+                limitations=(ONLINE_CATALOG_LIMITATION, "The series has no online catalog contentId."),
             )
             return SeriesEpisodes(movie_id=movie_id, seasons=(), episodes=collection, online_total=0)
         if not isinstance(content_id, str) or not content_id:
@@ -353,35 +273,7 @@ class KinopoiskClient:
                 or page["id"] != movie_id or page.get("contentId") != content_id):
             raise KinopoiskAPIError("FilmPage: mismatched movie identity")
         seasons = self._catalog_seasons(page)
-        online_total = sum(season.episode_count for season in seasons)
-        records, summaries, seen = [], [], set()
-        pages = 0
-        for season in seasons:
-            expected = season.episode_count
-            offset = 0
-            while offset < expected and pages < max_pages:
-                items = self._season_page(movie_id, season, offset)
-                pages += 1
-                for item in items:
-                    if item.id in seen:
-                        raise KinopoiskAPIError("Duplicate episode: pagination did not advance")
-                    seen.add(item.id)
-                    records.append(item)
-                offset += len(items)
-            summaries.append(Season(movie_id=movie_id, number=season.number,
-                                       total=expected, fetched=offset, complete=offset == expected))
-        pages_complete = all(season.complete for season in summaries)
-        complete = pages_complete and len(seasons) == season_count and len(records) == online_total == total
-        if not pages_complete:
-            limitations.append(f"Stopped at the page budget: {max_pages}.")
-        if online_total != total or len(seasons) != season_count:
-            limitations.append("The online catalog does not cover all metadata seasons or episodes.")
-        collection = Collection[Episode](
-            items=tuple(records), total=total, complete=complete,
-            scope=CollectionScope.ONLINE_WITH_ANNOUNCEMENTS, limitations=tuple(limitations),
-        )
-        return SeriesEpisodes(movie_id=movie_id, seasons=tuple(summaries),
-                                 episodes=collection, online_total=online_total)
+        return collect_catalog_pages(movie_id, seasons, total, season_count, max_pages, self._season_page)
 
     def get_relationships(self, movie_id: int) -> Collection[Relationship]:
         variables = {"movieId": movie_id, "relatedMoviesLimit": 20, "withUserData": False}
