@@ -359,6 +359,25 @@ class MediaIntegrityMigrationTests(unittest.TestCase):
         self.assertEqual(final.returncode, 0, final.stderr)
         self.assertEqual(self.execute('SELECT version FROM schema_version ORDER BY version'), [(1,), (2,), (3,), (4,)])
 
+    def test_project_namespaces_round_trip(self):
+        p = self.pgmigrate('-t', '7', 'migrate')
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.execute("""INSERT INTO telegram_users(user_id,is_admin) VALUES (17,true);
+            INSERT INTO telegram_queries(user_id,query_text) VALUES (17,'test')""")
+        original = self.execute("SELECT 'public.media'::regclass::oid, 'public.telegram_users'::regclass::oid")
+        p = self.pgmigrate('-t', '8', '--disable_schema_check', 'migrate')
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(self.execute("SELECT 'kinopoisk.media'::regclass::oid, 'telegram.users'::regclass::oid"), original)
+        self.assertEqual(self.execute("SELECT is_admin,query_text FROM telegram.users JOIN telegram.queries USING(user_id)"),
+                         [(True, 'test')])
+        self.assertEqual(self.execute("SELECT id FROM public.unrelated_table"), [(1,)])
+        self.assertEqual(self.execute("INSERT INTO telegram.queries(user_id,query_text) VALUES(17,'new') RETURNING query_id"), [(2,)])
+        self.assertEqual(self.execute("SELECT to_regclass('public.media'),to_regclass('public.telegram_users')"), [(None, None)])
+        self.migrate("R008__project_namespaces.sql")
+        self.assertEqual(self.execute("SELECT 'public.media'::regclass::oid, 'public.telegram_users'::regclass::oid"), original)
+        self.assertEqual(self.execute("SELECT count(*) FROM public.telegram_queries"), [(2,)])
+        self.assertEqual(self.execute("SELECT max(version) FROM public.schema_version"), [(7,)])
+
     def test_pgmigrate_dry_run_leaves_no_schema_or_history_changes(self):
         before = self.schema()
         ratings = self.execute('SELECT age_rating,rating_mpaa FROM media ORDER BY media_id')
