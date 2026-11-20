@@ -10,13 +10,17 @@ MPAA_RATINGS = {
 }
 
 
+class UnsupportedRating(ValueError):
+    pass
+
+
 def normalize_age_rating(value):
     if value is None:
         return None
     try:
         return AGE_RATINGS[str(value).removesuffix("+")]
     except KeyError:
-        raise ValueError(f"Unsupported age rating: {value!r}") from None
+        raise UnsupportedRating(f"Unsupported age rating: {value!r}") from None
 
 
 def normalize_mpaa_rating(value):
@@ -25,4 +29,4 @@ def normalize_mpaa_rating(value):
     try:
         return MPAA_RATINGS[str(value).upper()]
     except KeyError:
-        raise ValueError(f"Unsupported MPAA rating: {value!r}") from None
+        raise UnsupportedRating(f"Unsupported MPAA rating: {value!r}") from None

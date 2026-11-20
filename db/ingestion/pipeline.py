@@ -9,7 +9,8 @@ from uuid import uuid4
 from psycopg2 import DataError, IntegrityError
 from pydantic import ValidationError
 
-from db.ingestion.store import IngestionStore, media_patch, votes_above
+from db.ingestion.ratings import UnsupportedRating
+from db.ingestion.store import IngestionStore, votes_above
 from parser.graphql.client import KinopoiskClient
 from parser.graphql.errors import HTTPAPIError, ResponseValidationError
 from parser.graphql.models import MovieDetails
@@ -66,7 +67,6 @@ class MovieWorker:
                                                 max_episode_requests=self.options.episode_requests, **arguments)
         if details.id != movie_id:
             raise ValueError('API returned a different movie ID')
-        media_patch(details.movie)
         return details
 
     def _failure(self, token, movie_id, attempt, error):
@@ -90,13 +90,13 @@ class MovieWorker:
         try:
             return self.store.save(movies, token, refresh_days=self.options.refresh_days,
                                    min_votes=self.options.min_votes)
-        except (DataError, IntegrityError) as error:
+        except (DataError, IntegrityError, UnsupportedRating) as error:
             if len(movies) > 1:
                 middle = len(movies) // 2
                 return self._save(movies[:middle], token) + self._save(movies[middle:], token)
-            self.store.fail(token, movies[0].id, error=f'{type(error).__name__}: SQLSTATE {error.pgcode}',
-                            delay=0, terminal=True)
-            logger.error('movie=%s rejected by database: %s', movies[0].id, error.pgcode)
+            reason = str(error) if isinstance(error, UnsupportedRating) else f'{type(error).__name__}: SQLSTATE {error.pgcode}'
+            self.store.fail(token, movies[0].id, error=reason, delay=0, terminal=True)
+            logger.error('movie=%s rejected: %s', movies[0].id, reason)
             return 0
 
     def run(self) -> int:
@@ -141,6 +141,7 @@ class MovieWorker:
                         saved += self._save(buffer, token)
                         buffer.clear()
                         buffer_started = None
+                        continue
                     if jobs:
                         continue
                     break

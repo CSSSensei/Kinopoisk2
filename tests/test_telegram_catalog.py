@@ -7,14 +7,12 @@ from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
-import psycopg2
-from psycopg2 import sql
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
 from aiogram.methods import GetMe
 from aiogram.types import InlineKeyboardMarkup, Message, Update, User
 from aiogram.utils.formatting import Spoiler, Text
-from sqlalchemy.engine import URL
+from tests.catalog_database import catalog_database
 
 from db.repositories.media import MediaRepository
 from db.repositories.telegram import TelegramRepository
@@ -106,31 +104,12 @@ class PaginationTests(unittest.TestCase):
 class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
     @classmethod
     def setUpClass(cls):
-        cls.admin = psycopg2.connect(os.environ["KINOPOISK_TEST_PG_DSN"])
-        cls.admin.autocommit = True
-        name = "telegram_catalog_test_" + uuid4().hex
-        with cls.admin.cursor() as cur:
-            cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(name)))
-
-        def cleanup():
-            with cls.admin.cursor() as cur:
-                cur.execute(sql.SQL("DROP DATABASE {}").format(sql.Identifier(name)))
-            cls.admin.close()
-
-        cls.addClassCleanup(cleanup)
-        params = cls.admin.get_dsn_parameters()
-        params["dbname"] = name
-        conn = psycopg2.connect(**params)
-        cls.addClassCleanup(conn.close)
-        cls.settings = BotConfig("123456:unit-test", URL.create(
-            "postgresql", username=params["user"], database=name,
-            query={"host": params["host"], "port": params["port"]},
-        ).render_as_string(hide_password=False), "unit-test-admin-password")
-        with conn, conn.cursor() as cur:
-            cur.execute((ROOT / "db/sql/create_tables.sql").read_text())
-            for version in ("V005__media_ingestion", "V006__media_relations", "V007__telegram_catalog"):
-                cur.execute((ROOT / f"db/migrations/{version}.sql").read_text())
-            cur.execute("""
+        database_url = cls.enterClassContext(catalog_database())
+        cls.settings = BotConfig("123456:unit-test", database_url, "unit-test-admin-password")
+        engine = create_postgres_engine(database_url)
+        cls.addClassCleanup(engine.dispose)
+        with engine.begin() as conn:
+            conn.exec_driver_sql("""
                 INSERT INTO media(media_id,title,rating,votes,posterurl) VALUES
                     (1,'Present <1>',7,50000,NULL),(2,'Present <2>',6.9,50000,NULL);
                 INSERT INTO person(person_id,ru_name) VALUES(111,'Актёр');
@@ -150,8 +129,6 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
                 UPDATE media SET age_rating='12+', rating_mpaa='PG-13', top250=4,
                     trailer=to_json('https://example.com/video'::text) WHERE media_id=1;
             """)
-            cur.execute((ROOT / "db/migrations/V008__project_namespaces.sql").read_text())
-            cur.execute((ROOT / "db/migrations/V009__telegram_user_bans.sql").read_text())
 
     async def asyncSetUp(self):
         self.container = build_container(self.settings)

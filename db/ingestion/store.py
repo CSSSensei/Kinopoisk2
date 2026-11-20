@@ -1,64 +1,26 @@
 import logging
-from collections import defaultdict
 from contextlib import contextmanager
 from datetime import timedelta
 from io import StringIO
 from uuid import UUID
 
-from psycopg2.extras import Json, execute_values
-
-from db.ingestion.bulk import upsert_rows
-from db.ingestion.details import DetailChanges, save_bot_sections, save_relationships, save_series
-from db.ingestion.ratings import normalize_age_rating, normalize_mpaa_rating
+from db.ingestion.cards import media_patch as media_patch, save_cards
 from parser.graphql.models import Movie, MovieDetails
 
 
-_ROLE_NAMES = {
-    'actors': 'актеры', 'directors': 'режиссеры', 'writers': 'сценаристы',
-    'producers': 'продюсеры', 'operators': 'операторы', 'composers': 'композиторы',
-    'designers': 'художники', 'filmEditors': 'монтажеры',
-}
 _WORKER_LOCK = 723049381
 logger = logging.getLogger(__name__)
 
 
+def _vote_count(movie: Movie) -> int | None:
+    if "votes_kp" in movie.loaded_fields:
+        return movie.votes_kp
+    return movie.rating_kp.votes if movie.rating_kp else None
+
+
 def votes_above(movie: Movie, threshold: int) -> bool:
-    votes = movie.votes_kp if "votes_kp" in movie.loaded_fields else getattr(movie.rating_kp, "votes", None)
+    votes = _vote_count(movie)
     return votes is not None and votes > threshold
-
-
-def media_patch(movie: Movie) -> dict:
-    # Film/TvSeries cannot distinguish animation; an original title need not be English.
-    patch = movie.to_patch()
-    row = {'media_id': movie.id, 'title': movie.title}
-    for source, column in (
-        ('description', 'description'), ('short_description', 'short_description'),
-        ('slogan', 'slogan'), ('release_year', 'release_year'),
-        ('duration_minutes', 'duration'),
-        ('content_id', 'content_id'), ('top250', 'top250'), ('top10', 'top10'),
-        ('votes_kp', 'votes'), ('votes_imdb', 'votes_imdb'),
-    ):
-        if source in patch:
-            row[column] = patch[source]
-    if 'rating_kp' in patch and (movie.rating_kp is None or 'value' in movie.rating_kp.model_fields_set):
-        row['rating'] = movie.rating_kp.value if movie.rating_kp else None
-    if 'votes_kp' not in patch and movie.rating_kp is not None and 'votes' in movie.rating_kp.model_fields_set:
-        row['votes'] = movie.rating_kp.votes
-    if 'rating_imdb' in patch and (movie.rating_imdb is None or 'value' in movie.rating_imdb.model_fields_set):
-        row['rating_imdb'] = movie.rating_imdb.value if movie.rating_imdb else None
-    if 'trailer_url' in patch:
-        row['trailer'] = Json([{'url': movie.trailer_url}]) if movie.trailer_url else None
-    for source, column in (('budget', 'budget_value'), ('fees_world', 'fees_world')):
-        if source in patch:
-            row[column] = Json(patch[source]) if patch[source] is not None else None
-    if 'age_rating' in patch:
-        row['age_rating'] = normalize_age_rating(movie.age_rating)
-    if 'rating_mpaa' in patch:
-        row['rating_mpaa'] = normalize_mpaa_rating(movie.rating_mpaa)
-    if 'poster' in patch and (movie.poster is None or movie.poster.fallback_url):
-        row['posterurl'] = movie.poster.fallback_url if movie.poster else None
-    return row
-
 
 
 class IngestionStore:
@@ -237,137 +199,37 @@ class IngestionStore:
         records = {item.id: item if isinstance(item, MovieDetails) else MovieDetails(movie=item) for item in movies}
         if not records:
             return 0
-        detail_changes = DetailChanges()
         with self.transaction() as cursor:
             cursor.execute('''SELECT media_id FROM media_ingestion_job WHERE media_id = ANY(%s)
                 AND state = 'running' AND lease_token = %s::uuid AND lease_until > now()
                 ORDER BY media_id FOR UPDATE''', (list(records), str(token)))
-            owned_details = [records[row[0]] for row in cursor.fetchall()]
+            owned_ids = [row[0] for row in cursor.fetchall()]
             skipped = []
-            if min_votes is not None:
-                cursor.execute('SELECT media_id FROM media WHERE media_id = ANY(%s) FOR KEY SHARE',
-                               ([detail.id for detail in owned_details],))
+            if min_votes is None:
+                selected = [records[movie_id] for movie_id in owned_ids]
+            else:
+                cursor.execute('SELECT media_id FROM media WHERE media_id = ANY(%s) FOR KEY SHARE', (owned_ids,))
                 existing = {row[0] for row in cursor.fetchall()}
-                skipped = [detail for detail in owned_details
-                           if detail.id not in existing and not votes_above(detail.movie, min_votes)]
-                skipped_ids = {detail.id for detail in skipped}
-                owned_details = [detail for detail in owned_details if detail.id not in skipped_ids]
-            owned = [detail.movie for detail in owned_details]
-            changes = upsert_rows(cursor, 'media', [media_patch(movie) for movie in owned], 'media_id')
-            touched = {movie.id: set() for movie in owned}
-            for media_id in changes:
-                touched[media_id].add('media')
-            aliases = sorted({(movie.id, name) for movie in owned
-                              for name in (movie.original_title, movie.russian_title) if name and name != movie.title})
-            if aliases:
-                inserted = execute_values(cursor, '''INSERT INTO media_alias(media_id,name) VALUES %s
-                    ON CONFLICT DO NOTHING RETURNING media_id''', aliases, fetch=True)
-                for (media_id,) in inserted:
-                    touched[media_id].add('media_alias')
-            for table, field in (('genre', 'genres'), ('country', 'countries')):
-                for media_id in self._save_entities(cursor, owned, table, field):
-                    touched[media_id].add('media_' + table)
-            for media_id, tables in self._save_credits(cursor, owned).items():
-                touched[media_id].update(tables)
-            save_series(cursor, owned_details, detail_changes)
-            save_relationships(cursor, owned_details, detail_changes)
-            save_bot_sections(cursor, owned_details, detail_changes)
-            for media_id, tables in detail_changes.tables.items():
-                if media_id in touched:
-                    touched[media_id].update(tables)
-            ids = [movie.id for movie in owned]
+                selected = []
+                for movie_id in owned_ids:
+                    detail = records[movie_id]
+                    if movie_id in existing or votes_above(detail.movie, min_votes):
+                        selected.append(detail)
+                    else:
+                        skipped.append(detail)
+            changes = save_cards(cursor, selected)
+            saved_ids = [detail.id for detail in selected]
             cursor.execute('''UPDATE media_ingestion_job SET state = 'pending', attempts = 0,
-                lease_token = NULL, lease_until = NULL, last_error = NULL, last_success_at = now(),
-                next_attempt_at = now() + %s, updated_at = now() WHERE media_id = ANY(%s)
-                AND lease_token = %s::uuid''', (timedelta(days=refresh_days), ids, str(token)))
-            if skipped:
-                cursor.execute('''UPDATE media_ingestion_job SET state = 'pending', attempts = 0,
-                    lease_token = NULL, lease_until = NULL, last_error = NULL,
-                    next_attempt_at = now() + %s, updated_at = now() WHERE media_id = ANY(%s)
-                    AND lease_token = %s::uuid''',
-                               (timedelta(days=refresh_days), [detail.id for detail in skipped], str(token)))
-        counts = defaultdict(int)
-        for movie in owned:
-            action = 'INSERT' if changes.get(movie.id) == 'INSERT' else 'UPDATE' if touched[movie.id] else 'UNCHANGED'
-            counts[action] += 1
-            if action != 'UNCHANGED' or self.log_unchanged:
-                logger.info('[%s] media_id=%s title=%r tables=%s', action, movie.id, movie.title,
-                            ','.join(sorted(touched[movie.id])) or '-')
-        logger.info('Committed: inserted=%s updated=%s unchanged=%s',
-                    counts['INSERT'], counts['UPDATE'], counts['UNCHANGED'])
+                lease_token = NULL, lease_until = NULL, last_error = NULL,
+                last_success_at = CASE WHEN media_id = ANY(%s) THEN now() ELSE last_success_at END,
+                next_attempt_at = now() + %s, updated_at = now()
+                WHERE media_id = ANY(%s) AND lease_token = %s::uuid''',
+                           (saved_ids, timedelta(days=refresh_days), owned_ids, str(token)))
+        changes.log(selected, log_unchanged=self.log_unchanged)
         for detail in skipped:
-            votes = detail.movie.rating_kp.votes if detail.movie.rating_kp else None
             logger.info('[SKIP] media_id=%s title=%r votes=%s required=>%s',
-                        detail.id, detail.movie.title, votes, min_votes)
-        detail_changes.log(owned_details)
-        return len(owned)
-
-    @staticmethod
-    def _save_entities(cursor, movies: list[Movie], table: str, field: str) -> set[int]:
-        selected = [movie for movie in movies if field in movie.loaded_fields]
-        if not selected:
-            return set()
-        names = sorted({entity.name for movie in selected for entity in getattr(movie, field)})
-        identifier = table + '_id'
-        if names:
-            execute_values(cursor, f'INSERT INTO {table} (name) VALUES %s ON CONFLICT (name) DO NOTHING',
-                           [(name,) for name in names], page_size=1000)
-            cursor.execute(f'SELECT {identifier}, name FROM {table} WHERE name = ANY(%s)', (names,))
-            mapping = {name: key for key, name in cursor.fetchall()}
-        else:
-            mapping = {}
-        # Kinopoisk dictionary IDs are not the local SERIAL keys.
-        links = sorted({(movie.id, mapping[entity.name]) for movie in selected for entity in getattr(movie, field)})
-        affected = set()
-        if links:
-            inserted = execute_values(cursor, f'''INSERT INTO media_{table} (media_id, {identifier}) VALUES %s
-                ON CONFLICT DO NOTHING RETURNING media_id''', links, page_size=1000, fetch=True)
-            affected.update(row[0] for row in inserted)
-        deleted = execute_values(cursor, f'''DELETE FROM media_{table} existing
-            USING (VALUES %s) AS snapshot(media_id, entity_ids)
-            WHERE existing.media_id = snapshot.media_id
-                AND NOT (existing.{identifier} = ANY(snapshot.entity_ids::integer[]))
-            RETURNING existing.media_id''',
-                       [(movie.id, sorted({mapping[entity.name] for entity in getattr(movie, field)}))
-                        for movie in selected], page_size=1000, fetch=True)
-        affected.update(row[0] for row in deleted)
-        return affected
-
-    @staticmethod
-    def _save_credits(cursor, movies: list[Movie]) -> dict[int, set[str]]:
-        roles = sorted({credit.role for movie in movies for credit in movie.credits})
-        if not roles:
-            return {}
-        names = [_ROLE_NAMES[role] for role in roles]
-        execute_values(cursor, 'INSERT INTO role (name) VALUES %s ON CONFLICT (name) DO NOTHING',
-                       [(name,) for name in names])
-        cursor.execute('SELECT role_id, name FROM role WHERE name = ANY(%s)', (names,))
-        mapping = {name: key for key, name in cursor.fetchall()}
-        people = {person.id: person for movie in movies for credit in movie.credits for person in credit.people}
-        person_changes = upsert_rows(cursor, 'person', [{'person_id': person.id, 'ru_name': person.name} for person in people.values()], 'person_id')
-        affected = defaultdict(set)
-        for movie in movies:
-            if any(person.id in person_changes for credit in movie.credits for person in credit.people):
-                affected[movie.id].add('person')
-        links = sorted({(movie.id, person.id, mapping[_ROLE_NAMES[credit.role]])
-                        for movie in movies for credit in movie.credits for person in credit.people})
-        if links:
-            inserted = execute_values(cursor, '''INSERT INTO media_person_role (media_id, person_id, role_id)
-                VALUES %s ON CONFLICT (media_id, person_id, role_id) DO NOTHING RETURNING media_id''',
-                                      links, page_size=1000, fetch=True)
-            for row in inserted:
-                affected[row[0]].add('media_person_role')
-        complete = [(movie.id, mapping[_ROLE_NAMES[credit.role]], sorted({person.id for person in credit.people}))
-                    for movie in movies for credit in movie.credits if credit.complete is True]
-        if complete:
-            deleted = execute_values(cursor, '''DELETE FROM media_person_role existing
-                USING (VALUES %s) AS snapshot(media_id, role_id, person_ids)
-                WHERE existing.media_id = snapshot.media_id AND existing.role_id = snapshot.role_id
-                    AND NOT (existing.person_id = ANY(snapshot.person_ids::integer[]))
-                RETURNING existing.media_id''', complete, page_size=1000, fetch=True)
-            for row in deleted:
-                affected[row[0]].add('media_person_role')
-        return affected
+                        detail.id, detail.movie.title, _vote_count(detail.movie), min_votes)
+        return len(selected)
 
     def status(self) -> list[tuple]:
         with self.transaction() as cursor:

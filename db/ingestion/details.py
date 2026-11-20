@@ -1,4 +1,5 @@
 import logging
+from collections import Counter
 from dataclasses import dataclass, field
 
 from psycopg2 import sql
@@ -15,6 +16,7 @@ _RELATION_NAMES = {'BEFORE': 'Начало', 'AFTER': 'Продолжение', 
 
 @dataclass
 class DetailChanges:
+    inserted_media: set[int] = field(default_factory=set)
     tables: dict[int, set[str]] = field(default_factory=dict)
     seasons: dict[tuple[int, int], str] = field(default_factory=dict)
     episodes: dict[tuple[int, int, int], str] = field(default_factory=dict)
@@ -25,7 +27,20 @@ class DetailChanges:
     def touch(self, movie_id: int, table: str):
         self.tables.setdefault(movie_id, set()).add(table)
 
-    def log(self, details: list[MovieDetails]):
+    def log(self, details: list[MovieDetails], *, log_unchanged: bool):
+        counts = Counter()
+        for detail in details:
+            tables = self.tables.get(detail.id, ())
+            action = 'UPDATE' if tables else 'UNCHANGED'
+            if detail.id in self.inserted_media:
+                action = 'INSERT'
+            counts[action] += 1
+            if tables or log_unchanged:
+                logger.info('[%s] media_id=%s title=%r tables=%s', action, detail.id,
+                            detail.movie.title, ','.join(sorted(tables)) or '-')
+        logger.info('Committed: inserted=%s updated=%s unchanged=%s',
+                    counts['INSERT'], counts['UPDATE'], counts['UNCHANGED'])
+
         for (movie_id, number), action in sorted(self.seasons.items()):
             logger.info('[SEASON %s] media_id=%s season=%s', action, movie_id, number)
         for (movie_id, season, episode), action in sorted(self.episodes.items()):
@@ -105,9 +120,8 @@ def save_bot_sections(cursor, details: list[MovieDetails], changes: DetailChange
                 complete_lists.append((detail.id, list(detail.similar.items)))
     for table, rows, key in (("media_fact", facts, "position"),
                               ("media_recommendation", recommendations, "recommended_id")):
-        for (media_id, _), action in upsert_rows(cursor, table, rows, ("media_id", key)).items():
-            if action != "UNCHANGED":
-                changes.touch(media_id, table)
+        for media_id, _ in upsert_rows(cursor, table, rows, ("media_id", key)):
+            changes.touch(media_id, table)
     if fact_counts:
         removed = execute_values(cursor, """DELETE FROM media_fact f USING (VALUES %s) AS snapshot(id, count)
             WHERE f.media_id=snapshot.id AND f.position>snapshot.count RETURNING media_id""", fact_counts, fetch=True)
