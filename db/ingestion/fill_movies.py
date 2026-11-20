@@ -63,7 +63,7 @@ def _store(*, log_unchanged=False):
 @click.group(
     context_settings={'help_option_names': ['-h', '--help'], 'show_default': True},
     help='Discover and enrich Kinopoisk movies, seasons, episodes and relationships.',
-    epilog='Requires migrations through V006. Commands do not apply migrations. '
+    epilog='Requires migrations through V008. Commands do not apply migrations. '
            'run processes due jobs and exits; invoke it periodically to retry or refresh cards.',
 )
 def main():
