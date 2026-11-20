@@ -1,7 +1,7 @@
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, InlineQuery, Message
 
-from db.repositories.models import User
+from db.models import UserRecord
 from telegram_bot.lexicon import phrase
 from telegram_bot.handlers.admin_commands import ADMIN_NAMES
 
@@ -25,10 +25,13 @@ class RegisterUser(BaseMiddleware):
         sender = event.from_user
         if not sender:
             return await handler(event, data)
-        banned = await data["users"].register(
-            User(sender.id, sender.username, sender.first_name, sender.last_name),
-            query_text(event, data["settings"].admin_password),
+        user = UserRecord(
+            user_id=sender.id,
+            username=sender.username,
+            first_name=sender.first_name,
+            last_name=sender.last_name,
         )
+        banned = await data["users"].register(user, query=query_text(event, data["settings"].admin_password))
         if banned:
             if isinstance(event, CallbackQuery):
                 await event.answer()

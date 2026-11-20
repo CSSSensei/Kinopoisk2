@@ -3,16 +3,16 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from db.models import QueryRecord, UserRecord
-from db.repositories.models import User
 
 
 class TelegramRepository:
     def __init__(self, engine: AsyncEngine):
         self.engine = engine
 
-    async def register(self, user: User, query: str | None):
-        statement = insert(UserRecord).values(user_id=user.user_id, username=user.username,
-                                               first_name=user.first_name, last_name=user.last_name)
+    async def register(self, user: UserRecord, query: str | None) -> bool:
+        statement = insert(UserRecord).values(
+            user_id=user.user_id, username=user.username, first_name=user.first_name, last_name=user.last_name,
+        )
         async with self.engine.begin() as conn:
             upsert = statement.on_conflict_do_update(
                 index_elements=[UserRecord.user_id],
