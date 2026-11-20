@@ -1,10 +1,9 @@
-import asyncio
 import logging
-from typing import List, Dict, Set
+from typing import List
 from psycopg2.extras import execute_batch
 
 
-from parser.html.relationships import KinopoiskRelationshipParser, Relationship
+from parser.html.relationships import KinopoiskRelationshipParser
 from db.connection import get_engine
 from db.query_loader import load_query
 
@@ -18,9 +17,6 @@ BATCH_SIZE = 50
 
 SQL_GET_ALL_MEDIA_IDS = load_query("media/get_all_media_ids.sql")
 SQL_GET_MEDIA_BY_ID = load_query("media/get_media_by_id.sql")
-SQL_GET_OR_INSERT_CONNECTION_TYPE = load_query(
-    "media/get_or_insert_connection_type.sql"
-)
 SQL_ADD_CONNECTED_MEDIA = load_query("media/add_connected_media.sql")
 
 

@@ -5,7 +5,6 @@ from pathlib import Path
 from dotenv import dotenv_values
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import sessionmaker
 
 
 def create_postgres_engine(database_url):
@@ -27,13 +26,7 @@ def get_engine():
     return create_postgres_engine(database_url)
 
 
-@lru_cache(maxsize=1)
-def get_session_factory():
-    return sessionmaker(bind=get_engine(), expire_on_commit=False)
-
-
 def close_database():
     if get_engine.cache_info().currsize:
         get_engine().dispose()
-    get_session_factory.cache_clear()
     get_engine.cache_clear()
