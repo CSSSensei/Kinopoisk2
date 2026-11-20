@@ -9,9 +9,9 @@ from uuid import uuid4
 import psycopg2
 from psycopg2 import sql
 from aiogram import Bot, Dispatcher
-from aiogram.exceptions import TelegramBadRequest
-from aiogram.methods import SendPhoto
-from aiogram.types import Update
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
+from aiogram.methods import GetMe, SendPhoto
+from aiogram.types import Update, User
 from aiogram.utils.formatting import Spoiler, Text
 from sqlalchemy.engine import URL
 
@@ -31,6 +31,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class EntryPointTests(unittest.IsolatedAsyncioTestCase):
+    profile = User(id=123456, is_bot=True, first_name="Тест", username="test_catalog_bot")
+
     def test_direct_script_reaches_config_validation(self):
         result = subprocess.run(
             [sys.executable, "__main__.py"],
@@ -47,10 +49,30 @@ class EntryPointTests(unittest.IsolatedAsyncioTestCase):
         settings = BotConfig("123456:unit-test", "postgresql://localhost:1/catalog")
         with (
             patch.object(BotConfig, "load", return_value=settings),
+            patch.object(Bot, "get_me", return_value=self.profile) as get_me,
             patch.object(Dispatcher, "start_polling", new_callable=AsyncMock) as polling,
+            self.assertLogs("telegram_bot.bootstrap", level="INFO") as logs,
         ):
             await run_bot()
         polling.assert_awaited_once()
+        bot, = polling.await_args.args
+        self.assertEqual(await bot.me(), self.profile)
+        get_me.assert_awaited_once()
+        self.assertIn("getMe", logs.output[-2])
+        self.assertIn("Тест — https://t.me/test_catalog_bot", logs.output[-1])
+
+    async def test_get_me_failure_is_logged_before_polling(self):
+        error = TelegramNetworkError(GetMe(), "Request timeout error")
+        with (
+            patch.object(BotConfig, "load", return_value=BotConfig("123456:unit-test", "postgresql://localhost/catalog")),
+            patch.object(Bot, "get_me", side_effect=error),
+            patch.object(Dispatcher, "start_polling") as polling,
+            self.assertLogs("telegram_bot.bootstrap", level="ERROR") as logs,
+            self.assertRaises(TelegramNetworkError),
+        ):
+            await run_bot()
+        polling.assert_not_awaited()
+        self.assertIn("Сбой getMe (TelegramNetworkError)", logs.output[-1])
 
     async def test_polling_uses_proxy_from_config(self):
         proxy_url = "http://localhost:3128"
@@ -60,6 +82,7 @@ class EntryPointTests(unittest.IsolatedAsyncioTestCase):
                 "DATABASE_URL": "postgresql://localhost:1/catalog",
                 "PROXY_URL": proxy_url,
             }),
+            patch.object(Bot, "get_me", return_value=self.profile),
             patch.object(Dispatcher, "start_polling", new_callable=AsyncMock) as polling,
         ):
             await run_bot()
