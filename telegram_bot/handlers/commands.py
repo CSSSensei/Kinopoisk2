@@ -1,55 +1,34 @@
 from aiogram import Router
-from aiogram.filters import CommandStart, Command, StateFilter
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
 from aiogram.types import Message
 
-
-from telegram_bot.filters.UCommands import get_link
-from telegram_bot.filters.filters import CheckId
-from telegram_bot.keyboards import user_keyboards
-from db.repositories.movies import MovieRepository
-from telegram_bot.lexicon.lexicon import LEXICON_RU
-
-router = Router()
-db_instance = MovieRepository()
+from telegram_bot import phrases
+from telegram_bot.keyboards.user_keyboards import keyboard
 
 
-@router.message(CheckId())  # /id_...
-async def search(message: Message):
-    s = message.text[4:]
-    movie_id = int(s)
-    line = db_instance.search_by_id(movie_id)
-    if line is not None:
-        txt = db_instance.get_info(line)
-        link = get_link(movie_id)
-        await message.answer_photo(photo=link, caption=txt[0], reply_markup=user_keyboards.movie_keyboard(line))
-
-    else:
-        await message.answer('Такого id не существует', reply_markup=user_keyboards.keyboard)
+async def start(message: Message):
+    await message.answer(phrases.START, reply_markup=keyboard)
 
 
-@router.message(CommandStart())  # /start
-async def process_start_command(message: Message):
-    await message.answer(LEXICON_RU['/start'], reply_markup=user_keyboards.keyboard)
+async def help_command(message: Message):
+    await message.answer(phrases.HELP, reply_markup=keyboard)
 
 
-@router.message(Command(commands='cancel'), StateFilter(default_state))   # /cancel
-async def process_cancel_command(message: Message):
-    await message.answer(text=LEXICON_RU['/cancel'], reply_markup=user_keyboards.keyboard)
+async def about(message: Message):
+    await message.answer(phrases.ABOUT, reply_markup=keyboard)
 
 
-@router.message(Command(commands='cancel'), ~StateFilter(default_state))   # /cancel
-async def process_cancel_command_state(message: Message, state: FSMContext):
-    await message.answer(text=LEXICON_RU['/cancel_movie'], reply_markup=user_keyboards.keyboard)
+async def cancel(message: Message, state: FSMContext):
+    active = await state.get_state()
     await state.clear()
+    await message.answer("Поиск отменён." if active else "Сейчас нет активного поиска.", reply_markup=keyboard)
 
 
-@router.message(Command(commands=['help']))  # /help
-async def process_help_command(message: Message):
-    await message.answer(LEXICON_RU['/help'], reply_markup=user_keyboards.keyboard)
-
-
-@router.message(Command(commands=['about']))  # /help
-async def process_help_command(message: Message):
-    await message.answer(LEXICON_RU['/about'], reply_markup=user_keyboards.keyboard)
+def router():
+    result = Router(name="commands")
+    result.message.register(start, CommandStart())
+    result.message.register(help_command, Command("help"))
+    result.message.register(about, Command("about"))
+    result.message.register(cancel, Command("cancel"))
+    return result

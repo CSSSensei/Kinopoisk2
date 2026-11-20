@@ -7,8 +7,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker
 
-from db.models import Base
-
 
 def create_postgres_engine(database_url):
     if not database_url:
@@ -16,7 +14,9 @@ def create_postgres_engine(database_url):
     url = make_url(database_url)
     if url.get_backend_name() not in {"postgres", "postgresql"}:
         raise ValueError("DATABASE_URL must use PostgreSQL")
-    return create_engine(url.set(drivername="postgresql+psycopg2"), pool_pre_ping=True)
+    options = url.query.get("options", "") + " -csearch_path=kinopoisk,pg_catalog"
+    return create_engine(url.set(drivername="postgresql+psycopg2"), pool_pre_ping=True,
+                         connect_args={"options": options.strip()})
 
 
 @lru_cache(maxsize=1)
@@ -30,10 +30,6 @@ def get_engine():
 @lru_cache(maxsize=1)
 def get_session_factory():
     return sessionmaker(bind=get_engine(), expire_on_commit=False)
-
-
-def initialize_database():
-    Base.metadata.create_all(get_engine())
 
 
 def close_database():

@@ -1,29 +1,39 @@
 import asyncio
-from aiogram import Dispatcher
+from contextlib import AsyncExitStack
 
-from db.repositories.users import UserRepository
-from db.connection import close_database, initialize_database
-from telegram_bot.bot import bot
-from telegram_bot.middleware import setup_middlewares
-from telegram_bot.handlers import user_handlers, admin_handlers, commands, callbacks, inline_handler
+from aiogram import Bot, Dispatcher
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine
 
-
-async def main() -> None:
-    initialize_database()
-    dp = Dispatcher()
-    db = UserRepository()
-    setup_middlewares(dp, db)
-    dp.include_router(admin_handlers.router)
-    dp.include_router(commands.router)
-    dp.include_router(user_handlers.router)
-    dp.include_router(callbacks.router)
-    dp.include_router(inline_handler.router)
-    print("Мувик запущен!")
-    try:
-        await dp.start_polling(bot)
-    finally:
-        close_database()
+from db.repositories.media import MediaRepository
+from db.repositories.telegram import TelegramRepository
+from telegram_bot.config import BotConfig
+from telegram_bot.container import build_container
+from telegram_bot.handlers import admin_handlers, cards, commands, inline_handler, search
+from telegram_bot.middlewares.users import RegisterUser
 
 
-if __name__ == '__main__':
+def build_dispatcher(settings, catalog, users):
+    dp = Dispatcher(settings=settings, catalog=catalog, users=users)
+    dp.message.outer_middleware(RegisterUser())
+    dp.include_routers(admin_handlers.router(settings), commands.router(), cards.router(),
+                       inline_handler.router(), search.router())
+    return dp
+
+
+async def main():
+    settings = BotConfig.load()
+    async with AsyncExitStack() as stack:
+        container = build_container(settings)
+        stack.push_async_callback(container.close)
+        engine = await container.get(AsyncEngine)
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT m.top250 FROM kinopoisk.media m, kinopoisk.bot_credit_names, telegram.queries LIMIT 0"))
+        bot = Bot(settings.token)
+        stack.push_async_callback(bot.session.close)
+        dp = build_dispatcher(settings, await container.get(MediaRepository), await container.get(TelegramRepository))
+        await dp.start_polling(bot, close_bot_session=False)
+
+
+if __name__ == "__main__":
     asyncio.run(main())
