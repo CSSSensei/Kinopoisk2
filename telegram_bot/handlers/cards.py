@@ -9,21 +9,21 @@ from db.repositories.media import MediaRepository
 from telegram_bot.dialogs.cards import MovieCard
 from telegram_bot.keyboards.user_keyboards import keyboard
 from telegram_bot.lexicon import phrase
-from telegram_bot.presenters import web_url
+from telegram_bot.presenters import poster_url
 
 
 async def send_card(message, card, dialog_manager):
     if card is None:
         await message.answer(phrase("catalog.missing"), reply_markup=keyboard)
         return
-    poster = web_url(card.posterurl) or web_url(card.posterurlpreview)
+    poster = poster_url(card)
     # Each card keeps its own message and navigation when another film is opened.
     async with dialog_manager.bg(stack_id=uuid4().hex).fg() as manager:
         manager.middleware_data["opening_card"] = card
         try:
             await manager.start(MovieCard.view, data={"media_id": card.media_id, "poster": poster})
         except TelegramBadRequest as exc:
-            if not poster or not any(word in exc.message.lower() for word in ("photo", "url", "http", "file", "content type", "image")):
+            if not any(word in exc.message.lower() for word in ("photo", "url", "http", "file", "content type", "image")):
                 raise
             manager.dialog_data["text_only"] = True
             await manager.show()

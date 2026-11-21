@@ -209,23 +209,31 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         await self.feed("message", self.message("Найти фильм"))
         answer = await self.feed("message", self.message("Alias"))
         self.assertIn("/id_1", answer.text)
+        preview = "https://st.kp.yandex.net/images/film_iphone/iphone360_1.jpg"
+        photos = [call.args[1].photo for call in self.bot.session.make_request.await_args_list
+                  if call.args[1].__api_method__ == "sendPhoto"]
+        self.assertIn(preview, photos)
         answer = await self.feed("message", self.message("/id_1"))
-        self.assertIn("Present &lt;1&gt;", answer.text)
+        self.assertEqual(answer.photo, "https://st.kp.yandex.net/images/film_big/1.jpg")
+        self.assertIn("Present &lt;1&gt;", answer.caption)
         self.assertTrue(answer.reply_markup.inline_keyboard)
         random = await self.feed("message", self.message("Рандомный фильм"))
-        self.assertIn("/id_1", random.text)
+        self.assertIn("/id_1", random.caption)
         missing = await self.feed("message", self.message("/id_99"))
         self.assertIn("нет", missing.text)
         buttons = {b.text: b.callback_data for row in answer.reply_markup.inline_keyboard for b in row}
         edit, ack = await self.callback(buttons["Факты"])
-        self.assertIn("<tg-spoiler>", edit.text)
+        self.assertIn("<tg-spoiler>", self.outgoing[edit.message_id]["caption"])
         self.assertEqual(ack.__api_method__, "answerCallbackQuery")
-        edit, _ = await self.callback(buttons["Похожие фильмы"])
-        self.assertIn("/id_2", edit.text)
+        menu, _ = await self.callback(edit.reply_markup.inline_keyboard[-1][0].callback_data)
+        similar = next(b for row in menu.reply_markup.inline_keyboard for b in row if b.text == "Похожие фильмы")
+        edit, _ = await self.callback(similar.callback_data)
+        self.assertIn("/id_2", self.outgoing[edit.message_id]["caption"])
         edit, _ = await self.callback(edit.reply_markup.inline_keyboard[-1][0].callback_data)
-        self.assertIn("/id_1", edit.text)
+        self.assertIn("/id_1", self.outgoing[edit.message_id]["caption"])
         answer = await self.feed("inline_query", {"id": "i", "from": self.actor, "query": "Alias", "offset": ""})
         self.assertEqual(answer.results[0].id, "1")
+        self.assertEqual(answer.results[0].thumbnail_url, preview)
 
     async def test_card_button_after_restart(self):
         card = await self.feed("message", self.message("/id_1"))
@@ -268,7 +276,7 @@ class TelegramCatalogTests(unittest.IsolatedAsyncioTestCase):
         inline = await self.feed("inline_query", {"id": "i", "from": visitor, "query": "Alias", "offset": ""})
         self.assertEqual(inline.results, [])
         await self.feed("message", self.message("/unban 4567"))
-        self.assertIn("/id_1", (await self.feed("message", self.message("/id_1", visitor))).text)
+        self.assertIn("/id_1", (await self.feed("message", self.message("/id_1", visitor))).caption)
 
     async def test_admin_history_and_pagination(self):
         await self.feed("message", self.message(self.settings.admin_password))

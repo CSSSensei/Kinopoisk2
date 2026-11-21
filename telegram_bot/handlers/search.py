@@ -11,7 +11,7 @@ from db.repositories.media import MediaRepository
 from telegram_bot.lexicon import phrase
 from telegram_bot.handlers.cards import send_card
 from telegram_bot.keyboards.user_keyboards import keyboard
-from telegram_bot.presenters import pages, web_url
+from telegram_bot.presenters import pages, poster_url
 from telegram_bot.states.states import SearchMovie
 
 
@@ -26,12 +26,10 @@ async def search(message: Message, state: FSMContext, catalog: MediaRepository):
         return
     matches = await catalog.search(message.text)
     if matches:
-        poster = web_url(matches[0].posterurlpreview) or web_url(matches[0].posterurl)
-        if poster:
-            try:
-                await message.answer_photo(poster)
-            except TelegramBadRequest:
-                pass
+        try:
+            await message.answer_photo(poster_url(matches[0], preview=True))
+        except TelegramBadRequest:
+            pass
         entries = [phrase("search.result").format(title=m.title, year=m.release_year or "—",
                                                    rating=m.rating if m.rating is not None else "—", media_id=m.media_id) for m in matches]
         for page in pages(Text("\n".join(entries)), 4096):

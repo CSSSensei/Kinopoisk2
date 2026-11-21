@@ -3,7 +3,7 @@ from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessag
 from aiogram.utils.formatting import Text
 
 from db.repositories.media import MediaRepository
-from telegram_bot.presenters import pages, summary, web_url
+from telegram_bot.presenters import pages, poster_url, summary
 
 
 async def inline(query: InlineQuery, catalog: MediaRepository):
@@ -13,7 +13,7 @@ async def inline(query: InlineQuery, catalog: MediaRepository):
         page = pages(Text(summary(movie), "\n\n", description), 4096)[0]
         results.append(InlineQueryResultArticle(
             id=str(movie.media_id), title=f"{movie.title} | {movie.release_year or '—'}",
-            thumbnail_url=web_url(movie.posterurlpreview) or web_url(movie.posterurl),
+            thumbnail_url=poster_url(movie, preview=True),
             input_message_content=InputTextMessageContent(message_text=page.text, entities=page.entities,
                                                          parse_mode=None),
             description=f"{movie.rating if movie.rating is not None else '—'} | {description}",
